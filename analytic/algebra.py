@@ -201,6 +201,113 @@ Vpm = N*(N-1) * ea*eb*exp(-ea)*exp(-eb)*exp(-2*es) * ( (1+ea)*(1+eb) + 2*(ea+es)
 assert sympy.expand(Vpm) == sympy.expand(Npm-Np*Nm), "failed consistency check for Vpm"
 
 #=================================================
+#
+# covariances between different taus
+#
+#=================================================
+t1, t2 = sympy.symbols("tau_1 tau_2")
+### t1 <= t2
+
+N, R = sympy.symbols("N_1 R_1")
+### N = T/(2*t1)
+### R = N1-1
+
+z = t2/t1
+### z = N/n >= 1 -> N >= n
+### z >= 1
+
+n = N/z
+### n = T/(2*t2)
+### r = N2-1
+
+e1a = 2*t1*ra
+e1b = 2*t1*rb
+e1s = 2*t1*rs
+
+e1a2 = e1a + e1a**2
+e1b2 = e1b + e1b**2
+e1s2 = e1s + e1s**2
+
+e1s3 = e1s + 3*e1s**2 + e1s**3
+e1s4 = e1s + 7*e1s**2 + 6*e1s**3 + e1s**4
+
+e2a = 2*t2*ra
+e2b = 2*t2*rb
+e2s = 2*t2*rs
+
+e2a2 = e2a + e2a**2
+e2b2 = e2b + e2b**2
+e2s2 = e2s + e2s**2
+
+e2s3 = e2s + 3*e2s**2 + e2s**3
+e2s4 = e2s + 7*e2s**2 + 6*e2s**3 + e2s**4
+
+#========================
+### first moments
+#========================
+
+Na1 = N * (e1a + e1s)
+Na2 = n * z * (e1a + e1s) 
+
+assert sympy.expand(Na2) == sympy.expand(n * (e2a + e2s)), "failed consistency check for Na2"
+
+Nb1 = N * (e1b + e1s)
+Nb2 = n * z * (e1b + e1s)
+
+assert sympy.expand(Nb2) == sympy.expand(n * (e2b + e2s)), "failed consistency check for Nb2"
+
+Nc1 = N * (e1a*e1b + e1a*e1s + e1b*e1s + e1s2)
+Nc2 = n * z * (e1a*e1b + e1a*e1s + e1b*e1s + e1s2) + n * z*(z-1) * (e1a+e1s)*(e1b+e1s)
+
+assert sympy.expand(Nc2) == sympy.expand(n * (e2a*e2b + e2a*e2s + e2b*e2s + e2s2)), "failed consistency check for Nc2"
+
+Np1 = N*(N-1) * (e1a + e1s)*(e1b + e1s)
+Np2 = n*(n-1) * z*(e1a + e1s) * z*(e1b + e1s)
+
+assert sympy.expand(Np2) == sympy.expand(n*(n-1) * (e2a + e2s)*(e2b + e2s)), "failed consistency check for Np2"
+
+Nm1 = N*(N-1) * e1a*e1b * exp(-e1a)*exp(-e1b)*exp(-2*e1s)
+Nm2 = n*(n-1) * z*e1a*exp(-z*e1b)*exp(-z*e1s) * z*e1b*exp(-z*e1a)*exp(-z*e1s)
+
+assert sympy.expand(Nm2) == sympy.expand(n*(n-1) * e2a*e2b * exp(-e2a-e2b-2*e2s)), "failed consistency check for Nm2"
+
+#========================
+### second moments
+#========================
+
+Nc1c2 = n * z *(e1a2*e1b2 + 2*e1a2*e1b*e1s + e1a2*e1s2 + 2*e1a*e1b2*e1s + 4*e1a*e1b*e1s2 + 2*e1a*e1s3 + e1b2*e1s2 + 2*e1b*e1s3 + e1s4) \
+        + n * z*(z-1) * ( (e1a2*e1b + 2*e1a*e1b*e1s + e1b*e1s2 + e1a2*e1s + 2*e1a*e1s2 + e1s3)*(e1b+e1s) \
+                          + (e1a+e1s)*(e1a*e1b2 + 2*e1a*e1b*e1s + e1a*e1s2 + e1b*e1s + 1*e1b*e1s2 + e1s3) ) \
+        + n * z*(z-1)*(z-2) * (e1a*e1b + e1a*e1s + e1b*e1s + e1s2)*(e1a+e1s)*(e1b+e1s) \
+        + n*(n-1) * z * (e1a*e1b + e1a*e1s + e1b*e1s + e1s2) * ( z * (e1a*e1b + e1a*e1s + e1b*e1s + e1s2) + z*(z-1) * (e1a+e1s)*(e1b+e1s) )
+
+Nc1p2 = 0
+
+Nc1m2 = 0
+
+Np1c2 = 0
+
+Np1p2 = 0
+
+Np1m2 = 0
+
+Nm1c2 = 0
+
+Nm1p2 = 0
+
+Nm1m2 = 0
+
+#========================
+### Variances
+#========================
+Vc1c2 = Nc1c2 - Nc1*Nc2
+
+### check that we've got this correct
+assert sympy.expand(Vc1c2) == sympy.expand(Nc1c2 - Nc1*Nc2), "failed consistency check for Vc1c2"
+
+
+
+#=================================================
 # All consistency passes check, so we can now move on with the approximation of the likelihood!
 #=================================================
 print "success! you can do algebra!\nnow you have to use these functions to approximate the likelihood"
