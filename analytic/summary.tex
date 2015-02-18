@@ -1,0 +1,493 @@
+\documentclass{article}
+
+%=================================================
+
+\usepackage{fullpage}
+
+\usepackage{comment}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+\usepackage{color}
+
+%=================================================
+
+\newcommand{\step}[1]{\Theta\left(#1\right)}
+
+\newcommand{\e}[1]{\left<#1\right>}
+\newcommand{\ea}{\e{A}}
+\newcommand{\eb}{\e{B}}
+\newcommand{\es}{\e{S}}
+
+\newcommand{\s}[1]{\Sigma_{#1}}
+
+\newcommand{\rate}[1]{\lambda_{#1}}
+\newcommand{\la}{\rate{A}}
+\newcommand{\lb}{\rate{B}}
+\newcommand{\ls}{\rate{S}}
+
+%=================================================
+\begin{document}
+%=================================================
+
+%========================
+\section{definitions}
+%========================
+
+We approximate an experiment of duration $T$ as a series of smaller consecutive experiments of duration $2\tau$ each.
+We also associate coincidences as the product of the number of events in each small experiment from each of the two data streams (all coincidence, not just one per window).
+Furthermore, we assume independent poisson processes in each small experiment with rates $\la$, $\lb$, and $\ls$, respectively.
+The $S$ process is correlated between detectors, and so it modifies the statistics slightly.
+With these definitions, we can define the following statistics.
+
+\begin{subequations}
+	\begin{align}
+		d_A = & \sum\limits_i A_i + S_i \\
+		d_B = & \sum\limits_i B_i + S_i \\
+		n_c = & \sum\limits_i \left(S_i + A_i\right)\left(B_i + S_i\right) \\
+		n_+ = & \sum\limits_{i,\pi \neq i} \left(A_i + S_i\right) \left(B_\pi + S_\pi\right) \\
+		n_- = & \sum\limits_{i,\pi \neq i} \left(A_i + S_i\right) \left(1-\step{B_i}\right) \left(1-\step{S_i}\right) \left(B_\pi + S_\pi\right) \left(1-\step{A_\pi}\right) \left(1-\step{S_\pi}\right) 
+	\end{align}
+\end{subequations}
+
+\noindent
+Now, we can compute the moments of these statistics via
+
+\begin{subequations}
+	\begin{align}
+		\e{X} = & \sum P\left(A_1\right) P\left(B_1\right) P\left(S_1\right) \ldots P(A_N) P(B_N) P(S_N) X \\
+		      = & \sum X \left[\prod\limits_{j} \left(e^{-2\tau\la} \frac{\left(2\tau\la\right)^{A_j}}{A_j!} e^{-2\tau\lb} \frac{\left(2\tau\lb\right)^{B_j}}{B_j!} e^{-2\tau\ls} \frac{\left(2\tau\ls\right)^{S_j}}{S_j!}\right)\right] 
+	\end{align}
+\end{subequations}
+
+%========================
+\section{generating functions}
+%========================
+
+These are straightforward to compute for statistics that do not couple different time-windows (e.g.: $n_c$). 
+However, they are (intractably?) difficult for time-slide statistics.
+Therefore, we compute the generators when we can and resort to more direct calculations only when necessary.
+
+To wit, we can calculate
+
+\begin{subequations}
+	\begin{align}
+		\e{e^{k d_A + l d_B + m n_c}} = & \sum P(A_1) P(B_1) P(S_1) \ldots \sum P(A_N) P(B_N) P(S_N) e^{ k \sum_i \left(A_i + S_i\right) + l \sum_i \left(B_i + S_i\right) + m \sum_i \left(S_i + A_i\right)\left(B_i + S_i\right) } \nonumber \\
+		                              = & \sum P(A_1) P(B_1) P(S_1) e^{k\left(A_1 + S_1\right) + l \left(B_1 + S_1\right) + m \left(S_1 + A_1\right)\left(B_1 + S_1\right) } \ldots \nonumber \\
+		                                & \times \sum P(A_N) P(B_N) P(S_N) e^{k\left(A_N + S_N\right) + l \left(B_N + S_N\right) + m \left(S_N + A_N\right)\left(B_N + S_N\right) } \nonumber \\
+		                              = & \left[ \sum P(A) P(B) P(S) e^{k\left(A + S\right) + l \left(B + S\right) + m \left(S + A\right)\left(B + S\right) } \right]^{N}
+	\end{align}
+\end{subequations}
+
+\noindent
+from which we can immediately obtain $\e{d_A}$, $\e{d_A^2}$, $\e{d_A d_B}$, and so on. 
+We note that these boil down to taking the expectation values of several different combinations of statistics, repeated $N$ times.
+This is because each time-window is iid under our model, and therefore the analysis treats them separately and equally.
+
+However, for statistics involving time-slides, the time-windows are no longer independent because each window will ``talk'' to all other windows through the slides.
+Because we have only one actual instantiation for each bin, this introduces non-trivial correlations between slides that make computing the moment generating function difficult in general.
+For these terms, we may have to compute all desired moments directly by hand.
+
+%========================
+\section{Joint probability distribution}
+\label{section:joint pdf}
+%========================
+
+We would like to know the likelihood function $p(d_A, d_B, n_c, n_+, n_- | \la, \lb, \ls, \tau, T, R)$, but this is difficult to describe from first principles.
+However, if we can compue the moments of this distribution, we can build a description of the total function.
+This can be done via a Gram-Charlier A series (not gauranteed to be positive or to converge), an Edgeworth Series (not gauranteed to be positive or properly normalized). 
+\footnote{Cornish-Fisher expansions give the quantiles rather than the cumulative probability, in terms of the moments. This is like the ``inverse'' of an Edgeworth Series.}
+These approximations may not be accurate in the tails, and we have yet to determine how many terms are required for a stated amount of precision.
+In the limit of large numbers of events, this distribution should be approximately Gaussian because of arguments similar to the central limit theorem. 
+
+Following this prescription, we compute the first few moments of these statistics, with the association that $N = T / 2\tau$ and dropping the indecies for the small experiments (because they are iid):
+
+\begin{subequations}
+	\begin{align}
+		\e{d_A} = & N \left(\ea + \es\right) \nonumber \\
+		        = & T \left(\la + \ls\right) \\
+		\e{d_B} = & N \left(\eb + \es\right) \nonumber \\
+		        = & T \left(\lb + \ls\right) \\
+		\e{n_c} = & N \left( \ea \eb + \es\left(\ea + \eb\right) + \es + \es^2 \right) \nonumber \\
+		        = & T \ls + T 2\tau \left( \la\lb + \ls \left(\la+\lb+\ls\right) \right) \\
+		\e{n_+} = & N \left(N-1\right) \left(\ea+\es\right)\left(\eb+\es\right) \nonumber \\
+		        = & R T 2\tau \left(\la+\ls\right)\left(\lb+\ls\right) \\
+		\e{n_-} = & N\left(N-1\right) \ea e^{-\eb -\es} \eb e^{-\ea -\es} \nonumber \\
+		        = & R T 2\tau \la \lb e^{-2\tau\left(\la + \lb + 2\ls\right)} 
+	\end{align}
+\end{subequations}
+
+\begin{subequations}
+	\begin{align}
+		\s{AA}  = & N \left(\ea + \es \right) \nonumber \\
+		        = & T \left(\la + \ls\right) \\
+		\s{BB}  = & N \left(\eb + \es\right) \nonumber \\
+		        = & T \left(\lb + \ls\right) \\
+		\s{cc}  = & N \left( \es + \ea\eb + 3\es\left(\ea+\eb+2\es\right) \right. \nonumber \\
+		          & \left. + \left(\ea + \eb + 4\es\right)\left(\ea\eb + \es\left(\ea+\eb+\es\right)\right) \right) \nonumber \\
+		        = & T \ls + T 2\tau \left(\la\lb + 3\ls\left(\la+\lb+2\ls\right)\right) \nonumber \\
+		          & + T 4\tau^2 \left(\la+\lb+4\ls\right)\left(\la\lb + \ls\left(\la+\lb+\ls\right)\right) \\
+		\s{++}  = & N\left(N-1)\right) \left( \es^2 + \left(\ea+\es\right)\left(\eb+\es\right) \right. \nonumber \\
+		          & \left. + \left(N-1\right) \left(\ea+\es\right)\left(\eb+\es\right)\left(\ea+\eb+4\es\right) \right) \\
+		        = & T R 2\tau \left( \ls^2 + \left(\la+\ls\right)\left(\lb+\ls\right) \right. \nonumber \\
+			  & \left. + R 2\tau \left(\la + \ls\right)\left(\lb + \ls\right)\left(\la+\lb+4\ls\right) \right) \\
+		\s{--}  = & N\left(N-1\right)\ea\eb e^{-\ea-\eb-2\es} \left( 1 + \ea\left(1-e^{-\eb-\es}\right) + \eb\left(1-e^{-\ea-\es}\right) \right. \nonumber \\
+		          & \left. + \ea\eb\left(1-e^{-\eb-\es}\right)\left(1-e^{-\ea-\es}\right) + \ea\eb e^{-\ea-\eb-2\es} \right. \nonumber \\
+  			  & \left. + \left(N-1\right) \left( \eb e^{-\ea-\es} + \ea e^{-\eb-\es} + \ea\eb \left( e^{-\ea-\es} + e^{-\eb-\es} - 4e^{-\ea-\eb-2\es}\right) \right) \right) \nonumber \\
+			= & T R 2\tau \la\lb e^{-2\tau\left(\la+\lb+2\ls\right)} \left( 1 +  2\tau \left(\la\left(1-e^{-2\tau\left(\lb+\ls\right)}\right) + \lb\left(1-e^{-2\tau\left(\la+\ls\right)}\right)\right) \right. \nonumber \\
+                          & \left. + 4\tau^2 \la\lb\left(1-e^{-2\tau\left(\lb+\ls\right)}\right)\left(1-e^{-2\tau\left(\la+\ls\right)}\right) + 4\tau^2 \la\lb e^{-2\tau\left(\la+\lb+2\ls\right)} \right. \nonumber \\
+                          & \left. + R \left( 2\tau\left(\lb e^{-2\tau\left(\la+\ls\right)} + \la e^{-2\tau\left(\lb+\ls\right)} \right) + 4\tau^2\la\lb \left( e^{-2\tau\left(\la+\ls\right)} + e^{-2\tau\left(\lb+\ls\right)} - 4 e^{-2\tau\left(\la+\lb+2\ls\right)}\right) \right) \right)  
+	\end{align}
+\end{subequations}
+
+\begin{subequations}
+	\begin{align}
+		\s{AB} = & N \es \nonumber \\
+		       = & T \ls \\
+		\s{Ac} = & N \left( \left(\ea + \es\right) \eb + 2 \ea \es + \es + 2 \es^2 \right) \nonumber \\
+		       = & T \ls + T 2\tau \left( \left(\la + \ls\right) \lb + 2\ls\left(\la+\ls\right) \right) \\
+		\s{Bc} = & N \left( \left(\eb + \es\right) \ea + 2 \eb \es + \es + 2 \es^2 \right) \nonumber \\
+		       = & T \ls + T 2\tau \left( \left(\lb + \ls\right) \la + 2\ls\left(\lb+\ls\right) \right) \\
+		\s{A+} = & N \left(N-1\right) \left(\eb + 2\es\right)\left(\ea + \es\right) \nonumber \\
+		       = & T R 2\tau \left(\lb + 2\ls\right) \left(\la + \ls\right) \\
+		\s{B+} = & N \left(N-1\right) \left(\ea + 2\es\right)\left(\eb + \es\right) \nonumber \\
+		       = & T R 2\tau \left(\la + 2\ls\right) \left(\lb + \ls\right) \\
+		\s{A-} = & N \left(N-1\right) \ea\eb e^{-\ea -\eb -2\es}\left( 1 - \ea -2\es\right) \nonumber \\
+		       = & T R 2\tau \la \lb e^{-2\tau\left(\la + \lb + 2\ls\right) } \left( 1-2\tau\left(\la+2\ls\right) \right)\\
+		\s{B-} = & N \left(N-1\right) \ea\eb e^{-\ea -\eb -2\es}\left( 1 - \eb -2\es\right) \nonumber \\
+		       = & T R 2\tau \la \lb e^{-2\tau\left(\la + \lb + 2\ls\right) } \left( 1-2\tau\left(\lb+2\ls\right) \right)\\
+		\s{c+} = & N \left(N-1\right) \left( \left( \ea\eb + \es\left(\ea+\eb+\es\right)\right)\left(\ea + \eb + 4\es\right) + \es\left(\ea+\eb+2\es\right) \right) \nonumber \\
+		       = & T R 2\tau \ls\left(\la+\lb+2\ls\right) + T R 4\tau^2 \left( \la\lb + \ls\left(\la+\lb+\ls\right)\right)\left(\la + \lb + 4\ls\right) \\
+		\s{c-} = & -2 N \left(N-1\right) \ea\eb e^{-\ea-\eb-2\es}\left(\ea\eb + \es\left(\ea + \eb + \es + 1\right) \right)\nonumber \\
+		       = & -2\e{n_c}\e{n_-}/N \nonumber \\
+		       = & -2 T R 8\tau^3 \la\lb \left(\la\lb + \ls\left(\la+\lb+\ls+1\right)\right) \\
+		\s{+-} = & N\left(N-1\right) \ea\eb e^{-\ea-\eb-2\es} \left( \left(1+\ea\right)\left(1+\eb\right) + 2\left(\ea+\es\right)\left(\eb+\es\right) \right. \nonumber \\
+		         & \left. - \left(1+\ea\right)\left(\eb+\es\right) - \left(\ea+\es\right)\left(1+\eb\right) \right. \nonumber \\
+		         & \left. + \left(N-1\right)\left( \left(1+\ea\right)\left(\eb+\es\right) + \left(\ea+\es\right)\left(1+\eb\right) - 4\left(\ea+\es\right)\left(\eb+\es\right) \right) \right) \nonumber \\
+		       = & T R 2\tau \la\lb e^{-2\tau\left(\la+\lb+2\ls\right)} \left( 1 - 2\tau \ls + 4\tau^2 \left( \la \lb + \ls \left(\la+\lb+2\ls\right) \right) \right. \nonumber \\
+		         & \left. + R \left( 2\tau\left(\la + \lb + 2\ls\right) + 4\tau^2\left( \ls\left(\la+\lb+2\ls\right) - 2\left(\la+\ls\right)\left(\lb+\ls\right) \right)\right) \right) 
+	\end{align}
+\end{subequations}
+
+\noindent
+where $\s{xy} = \e{xy} - \e{x}\e{y}$ and $R$ is the number of time-slides performed. We can transform these value into the moments of the measured rates via
+
+\begin{subequations}
+	\begin{align}
+		\rate{c} = & \frac{n_c}{T} \\
+		\rate{\pm} = & \frac{n_\pm}{RT} 
+	\end{align}
+\end{subequations}
+
+\noindent
+and similarly for the variances. 
+
+%===========
+\subsection{a note about computation}
+%===========
+
+For the statistics for which we know the generating function, the computation is straightforward. 
+However, for time-slide statistics (which couple different time-windows), the generators are difficult to compute and we resort to direct computation of each moment separately.
+Typically, we consider sums that look like
+
+\begin{subequations}
+	\begin{align}
+		\sum P(A_1) P(B_1) P(S_1) \ldots \sum P(A_N) P(B_N) P(S_N) \sum_j X_j \sum_{i, \pi\neq i} Y_i Z_\pi = & N\left(N-1\right) \e{X Y}\e{Z} + N\left(N-1\right) \e{X Z}\e{Y} \nonumber \\
+		                                                                                                      & + N\left(N-1\right)\left(N-2\right) \e{X} \e{Y} \e{Z}
+	\end{align}
+\end{subequations}
+
+and we can compute second-moments of zero-lag and time-slide statistics using this expression.
+
+The second-moments fo time-slide statistics are more complicated, but we can apply the same methodology:
+
+\begin{subequations}
+	\begin{align}
+		\sum P(A_1) P(B_1) P(S_1) \ldots & \sum P(A_N) P(B_N) P(S_N) \sum_{i,\pi\neq i} W_i X_\pi \sum_{j,\sigma\neq j} Y_j Z_\sigma \nonumber \\
+		= \sum P(A_1) P(B_1) P(S_1) \ldots & \sum P(A_N) P(B_N) P(S_N) \sum_{i,\pi} W_i X_\pi \left(1-\delta_{i\pi}\right) \sum_{j,\sigma} Y_j Z_\sigma \left(1-\delta_{j\sigma}\right) \nonumber \\
+		= \left< W_i X_\pi \left(1-\delta_{i\pi}\right) Y_j Z_\sigma \left(1-\delta_{j\sigma}\right) \right. & \left( N \delta_{i\pi}\delta_{ij}\delta_{i\sigma} + N\left(N-1\right)\left( \delta_{i\pi}\delta_{ij} + \delta_{i\pi}\delta_{i\sigma} + \delta_{ij}\delta{j\sigma} + \delta_{j\sigma}\delta_{\sigma\pi}\right) \right. \nonumber \\
+                                      & + N\left(N-1\right)\left(\delta_{i\pi}\delta_{j\sigma} + \delta_{ij}\delta_{\pi\sigma} + \delta_{i\sigma}\delta_{j\pi} \right) \nonumber \\
+                                      & + N\left(N-1\right)\left(N-2\right)\left( \delta_{i\pi} + \delta_{ij} + \delta_{i\sigma} + \delta_{\pi j} + \delta_{\pi\sigma} + \delta_{j\sigma} \right) \nonumber \\
+                                      & \left. N\left(N-1\right)\left(N-2\right)\left(N-3\right) \right> \nonumber \\
+		= & N\left(N-1\right)\left( \e{WY}\e{XZ} + \e{WZ}\e{XY} \right) \nonumber \\
+                  & + N\left(N-1\right)\left(N-2\right) \left( \e{WY}\e{X}\e{Z} + \e{WZ}\e{X}\e{Y} \right) \nonumber \\
+		  & + N\left(N-1\right)\left(N-2\right) \left( \e{XY}\e{W}\e{Z} + \e{XZ}\e{W}\e{Y} \right) \nonumber \\
+		  & + N\left(N-1\right)\left(N-2\right)\left(N-3\right) \e{W}\e{X}\e{Y}\e{Z} 
+	\end{align}
+\end{subequations}
+
+\noindent
+where we've implemented a slight abuse of notation, in that if two indecies are not explicitly set equal through kroniker $\delta$ functions, they are assumed to be distinct.
+Using this formula, we can compute the second moment of time-slide statistics.
+
+This type of analysis should be helpful if/when we have to compute higher moments.
+
+%========================
+\section{computation of joint distribution from moments}
+%========================
+
+Let us assume that we have a $D$-dimensional data vector ($x_\nu$), each element of which must be an integer.
+We can consider the following quantity:
+
+\begin{multline}
+	\lim_{N\rightarrow\infty} N^{-D} \sum_{k_0=0}^{N-1} \ldots \sum_{k_D=0}^{N-1} e^{-2\pi i k_\nu y_\nu / N} \sum_{x_0=0}^{N-1} \ldots \sum_{x_D=0}^{N-1} e^{2\pi i k_\nu x_\nu /N} p(x_\nu) \\
+	= \lim_{N\rightarrow\infty} N^{-D} \sum_{x=0}^{N-1} \ldots \sum_{x_D=0}^{N-1} p(x_\nu) \sum_{k_0=0}^{N-1} \ldots \sum_{k_D=0}^{N-1} e^{2\pi i k_\nu (x_\nu - y_\nu) / N} \\
+	= \lim_{N\rightarrow\infty} \sum_{x=0}^{N-1} \ldots \sum_{x_D=0}^{N-1} p(x_\nu) \prod_{j=1}^{D} N^{-1} \sum_{k_j=0}^{N-1} e^{2\pi i k_j (x_j - y_j) / N} \\
+	= \lim_{N\rightarrow\infty} \sum_{x=0}^{N-1} \ldots \sum_{x_D=0}^{N-1} p(x_\nu) \prod_{j=1}^{D} \delta_{x_j y_j} \\
+	= \sum_{x=0}^{\infty} \ldots \sum_{x_D=0}^{\infty} p(x_\nu) \prod_{j=1}^{D} \delta_{x_j y_j} = p(y_\nu) \\
+\end{multline}
+
+\noindent
+where we've made use of an identity for discrete Fourier transforms:
+
+\begin{equation}
+	\sum_{j=0}^{N-1} e^{2\pi i (k-l) j /N} = \frac{1-e^{2\pi i (k-l)}}{1-e^{1\pi i (k-l)/N}} = N \delta_j
+\end{equation}
+
+\noindent
+identically because we assume $j$, $k$, $l$, and $N$ are all integers.
+This also means that 
+
+\begin{equation}
+	\sum_{j=0}^{N-1} e^{2\pi i (k-l) j /N} = \mathbb{R}\left\{ \sum_{j=0}^{N-1} e^{2\pi i (k-l) j /N} \right\}
+\end{equation}
+
+Now, we can expand $\mathrm{exp}\{2\pi i k x /N\}$ as a Taylor series and insert it into this identity.
+
+\begin{subequations}
+	\begin{align}
+		p(y_\nu) & = & \lim_{N\rightarrow\infty} \sum_{x_0=0}^{N-1} \ldots \sum_{x_D=0}^{N-1} p(x_\nu) \mathbb{R}\left\{ N^{-D} \sum_{k_0=0}^{N-1} \ldots \sum_{k_D=0}^{N-1} e^{2\pi i k_\nu (x_\nu - y_\nu)/N} \right\} & \\
+		         & = & \lim_{N\rightarrow\infty} \sum_{x_0=0}^{N-1} \ldots \sum_{x_D=0}^{N-1} p(x_\nu) \mathbb{R}\left\{ N^{-D} \sum_{k_0=0}^{N-1} \ldots \sum_{k_D=0}^{N-1} e^{-2\pi i k_\nu y_\nu/N} \sum_{n=0}^{\infty} \right. & \left. \frac{(2\pi i k_\nu x_\nu / N)^{n}}{n_!} \right\} \\
+		         & = & \lim_{N\rightarrow\infty} \sum_{x_0=0}^{N-1} \ldots \sum_{x_D=0}^{N-1} p(x_\nu) \mathbb{R}\left\{ N^{-D} \sum_{k_0=0}^{N-1} \ldots \sum_{k_D=0}^{N-1} e^{-2\pi i k_\nu y_\nu/N} \sum_{n=0}^{\infty} \right. & \left. \frac{(2\pi i N^{-1})^{n}}{n_!} \sum_{n_0=0}^{n} {n \choose n_0} \ldots \right. \nonumber \\ 
+		         &   & & \left. \times \sum_{n_D=0}^{n-\sum_{i=0}^{D-2}n_i} {n-\sum_{i=0}^{D-2} n_i \choose n_D} \prod_j^D \left(\frac{2\pi i k_j x_j}{N}\right)^{n_j} \right\} \\
+		         & = & \lim_{N\rightarrow\infty} \sum_{n=0}^{\infty} \frac{1}{n!} \sum_{n_0=0}^{n} {n \choose n_0} \ldots \sum_{n_D=0}^{n-\sum_{i=0}^{D-2}n_i} {n-\sum_{i=0}^{D-2} n_i \choose n_D} \sum_{x_0=0}^{N-1} \ldots & \sum_{x_D=0}^{N-1} p(x_\nu) \nonumber \\
+		         &   & & \times \mathbb{R}\left\{ \prod_j^D x_j^{n_j} N^{-1} \sum_{k_j=0}^{N-1} \left(\frac{2\pi i k_j}{N}\right)^{n_j} e^{-2\pi i k_j y_j /N} \right\}
+	\end{align}
+\end{subequations}
+
+Examining the last term in more detail, we find
+
+\begin{subequations}
+	\begin{align}
+		N^{-1} \sum_{k=0}^{N-1} \left(\frac{2\pi i k}{N}\right)^{n} e^{-2\pi i k y / N} & = N^{-1} \sum_{k=0}^{N-1} \left( - \frac{\partial}{\partial y} \right)^n e^{-2\pi i k y / N} \\
+		                                                                         & = N^{-1} \left(11\right)^n \frac{\partial^n}{\partial y^n} \sum_{k=0}^{N-1} e^{-2\pi i k y / N} \\
+		                                                                         & = N^{-1} \left(-1\right)^n \frac{\partial^n}{\partial y^n} \left( \frac{1-e^{-2\pi i y}}{1-e^{-2\pi i y / N}} \right) \\
+		                                                                         & = N^{-1} \left(-1\right)^n \frac{\partial^n}{\partial y^n} \left( \frac{1-e^{-2\pi i y}}{(2\pi i y/N)( 1 + O(1/N) )} \right) \\
+		                                                                         & = \left(-1\right)^n \frac{\partial^n}{\partial y^n} \left( \frac{1-e^{-2\pi i y}}{2\pi i y}\right) + O(1/N) 
+	\end{align}
+\end{subequations}
+
+\noindent
+in the limit of large $N$. 
+Using this in the previous expression, we obtain
+
+\begin{subequations}
+	\begin{align}	
+		p(y_\nu) & = & \lim_{N\rightarrow\infty} \sum_{n=0}^{\infty} \frac{1}{n!} \sum_{n_0=0}^{n} {n \choose n_0} \ldots \sum_{n_D=0}^{n-\sum_{i=0}^{D-2}n_i} {n-\sum_{i=0}^{D-2} n_i \choose n_D} \sum_{x_0=0}^{N-1} \ldots \sum_{x_D=0}^{N-1} & p(x_\nu) \nonumber \\
+                         &   & & \times \mathbb{R}\left\{ \prod_j^D x_j^{n_j} (-1)^{n_j}  \frac{\partial^{n_j}}{\partial y_j^{n_j}} \left( \frac{1-e^{-2\pi i y_j}}{2\pi i y_j}  \right) \right\} \\
+		         & = & \lim_{N\rightarrow\infty} \sum_{n=0}^{\infty} \frac{(-1)^n}{n!} \sum_{n_0=0}^{n} {n \choose n_0} \ldots \sum_{n_D=0}^{n-\sum_{i=0}^{D-2}n_i} {n-\sum_{i=0}^{D-2} n_i \choose n_D} \left( \sum_{x_0=0}^{N-1} \ldots \right. & \left. \sum_{x_D=0}^{N-1} p(x_\nu) \prod_j^D x_j^{n_j} \right)\nonumber \\
+                         &   & & \times \mathbb{R}\left\{ \prod_j^D \frac{\partial^{n_j}}{\partial y_j^{n_j}} \left( \frac{1-e^{-2\pi i y_j}}{2\pi i y_j}  \right) \right\} \\
+		         & = & \sum_{n=0}^{\infty} \sum_{n_0=0}^{n} \ldots \sum_{n_D=0}^{n-\sum_{i=0}^{D-2}n_i} \frac{(-1)^n}{n!} {n \choose n_0} \ldots {n-\sum_{i=0}^{D-2} n_i \choose n_D} \mathbb{R}\left\{ \prod_j^D \frac{\partial^{n_j}}{\partial y_j^{n_j}} \right. & \left. \left( \frac{1-e^{-2\pi i y_j}}{2\pi i y_j}  \right) \right\} \e{ \prod_j^D x_j^{n_j} } \\
+		\Longrightarrow &  & p(y_\nu) = \sum_{n=0}^{\infty} \sum_{n_0=0}^{n} \ldots \sum_{n_D=0}^{n-\sum_{i=0}^{D-2}n_i} (-1)^n \mathbb{R}\left\{ \prod_j^D \frac{1}{n_j !} \frac{\partial^{n_j}}{\partial y_j^{n_j}} \left( \frac{1-e^{-2\pi i y_j}}{2\pi i y_j}  \right) \right\} & \left< \prod_j^D x_j^{n_j} \right>
+	\end{align}
+\end{subequations}
+
+\noindent
+from which we can immediately read of the coefficients of each moment in the series.
+
+Now, this does not address the issue of convergence, which is not necessarily guaranteed, nor does it address the error introduced by truncating the series after a finite number of moments.
+Importantly, we would like to know how many moments are required to reach a certain level of precision, and how that number depends on the expected rates $\ea$, $\eb$, etc.
+This approach may converge faster if we compute the probability for estimated event rates for each data stream ($d_A$, etc), defined in Section \ref{section:joint pdf}.
+
+We also note that an analogous series can be defined in terms of the cumulants by replacing $x_\nu \rightarrow x_\nu - \mu_\nu$ and $y_\nu \rightarrow y_\nu - \mu_\nu$ everywhere in this series expansion. 
+The series may converge faster in terms of cumulants, but that is not clear.
+
+\textcolor{red}{
+Should we confirm this with a few known distributions?
+\begin{itemize}
+	\item{check for consistency in that $p(y_\nu)$ is obtained when we compute $\e{y_\nu}$ using a few known distributions and this series.}
+	\item{check that moments are recovered correctly (independent of the actual distribution) using this series.}
+\end{itemize}
+Develop a formalism for approximating the errors associated with truncation.
+Can we approach this systematically?
+}
+
+\textcolor{red}{
+An ``power series'' expansion is unlikely to converge quickly. 
+We may want to somehow expand about a gaussian distribution, which may take some thought.
+The simplest way would be to somehow represent $e^{2\pi i k_\nu x_\nu /N}$ as a gaussian or sum of gaussians?
+Either that, or compare the coefficients of different powers of $y_\nu$ with those of a gaussian and ``re-sum'' the series?
+Can we get any intuition from using a gaussian distribution in the existing series?
+}
+
+%===========
+\subsection{further investigation of the univariate case}
+%===========
+
+If we only have a single variable, this expression reduces considerably to 
+
+\begin{subequations}
+	\begin{align}
+		p(y) & = \sum_x p(x) \sum_n \frac{(-1)^{n+1}}{n!} x^n \left(\frac{\partial}{\partial y}\right)^n \frac{\sin(2\pi y)}{2\pi y} 
+	\end{align}
+\end{subequations}
+
+\noindent
+which, upon expanding $\sin(2\pi y)$ as a power series and re-summing terms, yields
+
+\begin{subequations}
+	\begin{align}
+		p(y) & = \sum_x p(x) \frac{\sin(2\pi (y-x))}{2\pi (y-x)} \\
+		     & = \sum_x p(x) \delta_{xy}
+	\end{align}
+\end{subequations}
+
+\noindent
+because $x$ and $y$ are integers. 
+So, this confirms that our expansion makes sense. 
+Furthermore, we can expand this into a power series for $y$ as follows
+
+\begin{subequations}
+	\begin{align}
+		p(y) = & \sum_x p(x) \left( \frac{ \sin(2\pi (y-x) ) } { 2\pi (y-x) } \right) \\
+		     = & \sum_{x=0}^{\infty} p(x) \sum_{m=1}^{\infty} \frac{(-1)^{m-1}}{(2m-1)!} \left(2\pi(y-x)\right)^{2m-2} \\
+		     = & \sum_{x=0}^{\infty} p(x) \sum_{m=1}^{\infty} \frac{(-1)^{m-1}}{(2m-1)!} (2\pi)^{2m-2} \left((y-\mu)-(x-\mu))\right)^{2m-2} \\
+		     = & \sum_{x=0}^{\infty} p(x) \sum_{m=1}^{\infty} \frac{(-1)^{m-1}}{(2m-1)!} (2\pi)^{2m-2} \sum_{k=0}^{2m-2} {2m-2 \choose k } (y-\mu)^k (x-\mu)^{2m-2-k} \\
+		     = & \sum_{m=1}^{\infty} \frac{(-1)^{m-1}}{(2m-1)!} (2\pi)^{2m-2} \sum_{k=0}^{2m-2} {2m-2 \choose k } (y-\mu)^k \left(\sum_x p(x) (x-\mu)^{2m-2-k} \right) \\
+		     = & \sum_{m=1}^{\infty} \frac{(-1)^{m-1}}{(2m-1)!} (2\pi)^{2m-2} \sum_{k=0}^{2m-2} {2m-2 \choose k } (y-\mu)^k \e{(x-\mu)^{2m-2-k}} \\
+		     = & \sum_{m=0}^{\infty} \sum_{k=0}^{2m} \frac{(-1)^{m}}{(2m+1)!} (2\pi)^{2m} {2m \choose k } (y-\mu)^k \e{(x-\mu)^{2m-k}} \\
+		     = & \sum_{k=0}^{\infty} \sum_{m\geq k/2}^{\infty} (y-\mu)^k \frac{(-1)^{m}}{(2m+1)!} (2\pi)^{2m} {2m \choose k } \e{(x-\mu)^{2m-k}} \\
+		     = & \sum_{k=0}^{\infty} (y-\mu)^k \frac{1}{k!} \sum_{m\geq k/2}^{\infty} \frac{1}{(2m-k)!} \frac{(-4\pi^2)^{m}}{(2m+1)} \e{(x-\mu)^{2m-k}} 
+	\end{align}
+\end{subequations}
+
+\noindent
+and we have a power series for $p(y)$ in terms of $y-\mu$ and a formula to compute the coefficients.
+We also note that as long as the cumulants $\e{(x-\mu)^{2m-k}}$ do not grow faster than $(2m-k)!$, these coefficients should converge.
+That requirement is likely satisfied for most of our distributions.
+\textcolor{red}{
+If it is not, we can truncate the series?
+}
+
+Now, a power series may not converge as quickly as a more compact representation.
+We expect the distribution to be nearly Gaussian in most cases (large number statistics), so we derive expressions for the following functional form
+
+\begin{subequations}
+	\begin{align}
+		p(y) = & \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(y-\mu)^2}{2\sigma^2}} \sum_{n=0}^{\infty} a_n (y-\mu)^n \\
+		     = & (2\pi\sigma^2)^{-1/2} \sum_{m=0}^{\infty} \frac{1}{m!} \left( - \frac{(y-\mu)^2}{2\sigma^2} \right)^m \sum_{n=0}^{\infty} a_n (y-\mu)^{n} \\
+		     = & \sum_{k=0}^{\infty} \delta_{k,2m+n} \sum_{m=0}^{\infty} \sum_{n=0}^{\infty} (2\pi\sigma^2)^{-1/2} \frac{1}{m!} \left( \frac{-1}{2\sigma^2} \right)^m a_n (y-\mu)^{2m+n} \\
+		     = & \sum_{k=0}^{\infty} (y-\mu)^k \sum_{m=0}^{\infty} \sum_{n=0}^{\infty} (2\pi\sigma^2)^{-1/2} \frac{1}{m!} \left( \frac{-1}{2\sigma^2} \right)^m a_n \delta_{k,2m+n}
+	\end{align}
+\end{subequations}
+
+\noindent
+and comparing powers of $y-\mu$, we can determine the coefficients $a_n$ recursively.
+
+\begin{subequations}
+	\begin{align}
+		\frac{1}{k!} \sum_{m\geq k/2}^{\infty} \frac{1}{(2m-k)!} \frac{(-4\pi^2)^{m}}{(2m+1)} \e{(x-\mu)^{2m-k}} & = \sum_{m=0}^{\infty} \sum_{n=0}^{\infty} (2\pi\sigma^2)^{-1/2} \frac{1}{m!} \left( \frac{-1}{2\sigma^2} \right)^m a_n \delta_{k,2m+n}
+	\end{align}
+\end{subequations}
+
+\noindent
+which will separate into separate sums depending on whether $k$ is even or odd. 
+
+\textcolor{red}{
+We then have simple recursion relations between $a_n$ and $a_{n+2}$ for both even and odd $n$?
+Can we show that these coefficients vanish for a Gaussian distribution?
+Can we show that these coefficients are well behaved in general?
+Can we take this further and derive a series in terms of the moments of the distribution?
+Need to solve for $a_n$ and then re-group terms in the sum according to the cumulants.
+Derive something like the Hermite polynomials for the coefficients of each cumulant?
+}
+
+%========================
+\section{generalization to coincidence between $N$ detectors}
+%========================
+
+\textcolor{red}{
+Can we generalize our statistics to account for $N$ detectors?
+Do we need to worry about the case of different coincident windows for different pairs of detectors?
+How would we address such a thing?
+}
+
+%========================
+\section{extension to likelihood-based background rejection (a la Kipp)}
+%========================
+
+When we define our statistics, we can include proabilities that the coincidences will be accepted as ``real'' events as a function of a likelihood ratio. 
+To wit, we can modify the definitions to be:
+
+\begin{subequations}
+	\begin{align}
+		d_A = & \sum_i A_i + S_i \\
+		d_B = & \sum_i B_i + S_i \\
+		n_c = & \sum_i p (A_i B_i + A_i S_i + B_i S_i) + q S_i + p S_i (S_i-1) \\
+		n_+ = & \sum_i\sum_{\pi\neq i} p (A_i + S_i) (B_\pi + S_\pi) \\
+		n_- = & \sum_i\sum_{\pi\neq i} p A_i (1-\step{B_i})(1-\step{S_i}) B_\pi (1-\step{A_\pi}) (1-\step{S_\pi})
+	\end{align}
+\end{subequations}
+
+\noindent
+where $p$ is the probability that ``accidental'' coincidences will pass the likelihood-based background rejection (a la Kipp Cannon) and $q$ is the probability that ``real'' coincidences will pass the rejection.
+Note that the only real complication is within $n_c$ and how we handle coincidences between signals.
+We can also note that when $p=q=1$, these statistics reduce to the previous definitions, as expected.
+
+Now, at some likelihood threshold $\Lambda_\mathrm{thr}$, we can associate $q$ and $p$ with the cumulative probabilities that signals and background will have $\Lambda\geq\Lambda_\mathrm{thr}$, respectively.
+We can always compute the distributions for the multivariate likelihood-based background rejection using time-slides without zero-lag events, to ensure that we get only accidentals.
+Similarly, we can use injection studies to obtain the distributions for signals. 
+Then, we simply compute $p$ and $q$ a priori, and use those numbers in our computations.
+
+It should be relatively straightforward to re-compute moments using these modified statistics, and from that to estimate the assoicated joint probability distribution. 
+We should then be able to model the joint distribution and inferences made therewith and how they depend on $\Lambda_\mathrm{thr}$.
+
+%========================
+\section{application toward detection and background consistency}
+%========================
+
+\textcolor{red}{
+Just dump all ideas about detection and background consistency here?
+\begin{itemize}
+	\item{Hypothesis test for $\ls=0$ using $n_c$, $n_+$, and $n_-$ at a fixed $\tau$}
+	\item{Vary $\tau$ and fit for $\ls$, $\la$, $\lb$. Perhaps dump this into an MCMC to obtain posteriors? We need a likelihood, which may be difficult to construct.}
+	\item{Ignoring $n_\pm$, we can simply fit $n_c$ and examine the distribution of the y-intercept?}
+\end{itemize}
+}
+
+Once we have an approximate expression for the likelihood, we can marginalize (over $\tau$, else?) to obtain a posterior 
+
+\begin{equation}
+	p(\la, \lb, \ls | d_A, d_B, n_c, n_+, n_-, T, R)
+\end{equation}
+
+for each SNR bin.
+This then lets us build the entire posterior for all SNR bins iteratively.
+The end goal for detection would be a consistency check that computes a p-value for $\ls=0\ \forall\ \text{SNR}$, given the constructed posterior.
+It is also unclear whether better detection efficiency is achieved by considering each SNR bin separately, or by considering the ``cumulative'' rates of events.
+Furthermore, our prescription does not determine whether any particular event is a signal or background event.
+We can only estimate for the Poisson rates at each SNR bin.
+\textcolor{red}{
+I guess the probability of any particular event being a signal or background will then be the likelihood ratio of the marginalized distributions for the rates of signals to the rates of zero-lag background coincidences, which we can compute from the probability distributions for the glitch rates in separate detectors?
+Is that right?
+}
+
+\textcolor{red}{
+This is particularly essentially an in-coherent coincidence analyses, which don't make use of Kipp's likelihood criterion to reject background. 
+This could be applicable to variants of Omicron+LIB and/or ExcessPower where there likelihood threshold is set to be very low, so that all coincident events are kept.
+}
+
+So, our job begins with computing moments of these distributions.
+We will need at least quadratic terms (assuming large-number statistics), but will almost certainly need more terms as the sample size decreases.
+This will be imporant in the tails of the distributions over SNR, where the rates are low.
+It is unclear what the biases introduced by truncating the likelihood will be in these measurements, although some formal work has been done on this. 
+We might hope to understand the errors associated with the estimates of the distribution through error estimates from Edgeworth series.
+However, we might hope that the time-slide data will have a much larger sample size than the zero-lag data, and therefore we will need fewer moments involving the time-slide data than the zero-lag data.
+That is useful because it is relatively straightforward to compute the moments of the zero-lag data, but the moments of the time-slide data are non-trivial to compute.
+
+As a convenient intermission, we can compute and describe the biases associated with different estimates of the FAR when we do not account for the presence of signals. 
+
+%=================================================
+\end{document}
+%=================================================
