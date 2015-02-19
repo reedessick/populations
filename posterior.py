@@ -39,6 +39,9 @@ if len(args) != 1:
         raise ValueError("please supply exactly 1 argument")
 datafilename = args[0]
 
+it opts.tag:
+	opts.tag = "_%s"%opts.tag
+
 #=================================================
 if opts.verbose:
         print "===================================================="
