@@ -14,9 +14,9 @@ ra, rb, rs = sympy.symbols("lambda_1 lambda_2 lambda_0")
 
 T, t = sympy.symbols("T tau")
 
-N, R = sympy.symbols("N R")
+N= sympy.symbols("N")
 ### N = T/(2*t)
-### R = N-1
+R = N-1
 
 ea = 2*t*ra
 eb = 2*t*rb
@@ -68,8 +68,8 @@ Np2 = N*(N-1) * ( (ea2 + 2*ea*es + es2)*(eb2 + 2*eb*es + es2) + (ea*eb + es*(ea+
       + N*(N-1)*(N-2)*(N-3) * (ea+es)**2 * (eb+es)**2 
 
 ### from the write-up
-Vpp = N*(N-1) * ( (ea+es)*(eb+es) + es**2 
-                  + (N-1) * (ea+es)*(eb+es)*(ea + eb + 4*es) )
+Vpp = N*R * ( (ea+es)*(eb+es) + es**2 
+                  + R * (ea+es)*(eb+es)*(ea + eb + 4*es) )
 
 ### check that we've got this correct
 assert sympy.expand(Vpp) == sympy.expand(Np2-Np**2), "failed consistency check for Vpp"
@@ -84,10 +84,10 @@ Nm2 = N*(N-1) * ea2*eb2 * exp(-ea)*exp(-eb)*exp(-2*es) \
     + N*(N-1)*(N-2)*(N-3) * ea**2*eb**2 * exp(-2*ea)*exp(-2*eb)*exp(-4*es)
 
 ### from the write-up
-Vmm = N*(N-1) * ea*eb * exp(-ea)*exp(-eb)*exp(-2*es) \
+Vmm = N*R * ea*eb * exp(-ea)*exp(-eb)*exp(-2*es) \
 	* ( 1 + ea*(1-exp(-eb)*exp(-es)) + eb*(1-exp(-ea)*exp(-es)) \
 	    + ea*eb*(1-exp(-eb)*exp(-es))*(1-exp(-ea)*exp(-es)) + ea*eb* exp(-ea)*exp(-eb)*exp(-2*es) \
-	    + (N-1) * ( eb*exp(-ea)*exp(-es) + ea*exp(-eb)*exp(-es) \
+	    + R * ( eb*exp(-ea)*exp(-es) + ea*exp(-eb)*exp(-es) \
 	                + ea*eb*(exp(-ea)*exp(-es) + exp(-eb)*exp(-es) - 4*exp(-ea)*exp(-eb)*exp(-2*es) ) ) )
 
 ### check that we've got this correct
@@ -129,7 +129,7 @@ assert sympy.expand(Vbc) == sympy.expand(Nbc-Nb*Nc), "failed consistency check f
 Nap = N*(N-1) * ( (ea2 + 2*ea*es + es2)*(eb+es) + (ea+es)*(ea*eb + es*(ea+eb) + es2) ) \
       + N*(N-1)*(N-2) * ( (ea+es)**2 * (eb+es) )
 
-Vap = N*(N-1) * (eb + 2*es)*(ea+es)
+Vap = N*R * (eb + 2*es)*(ea+es)
 
 ### check that we've got this correct
 assert sympy.expand(Vap) == sympy.expand(Nap-Na*Np), "failed consistency check for Vap"
@@ -139,7 +139,7 @@ assert sympy.expand(Vap) == sympy.expand(Nap-Na*Np), "failed consistency check f
 Nbp = N*(N-1) * ( (eb2 + 2*eb*es + es2)*(ea+es) + (eb+es)*(ea*eb + es*(ea+eb) + es2) ) \
       + N*(N-1)*(N-2) * ( (ea+es) * (eb+es)**2 )
 
-Vbp = N*(N-1) * (ea+2*es)*(eb+es)
+Vbp = N*R * (ea+2*es)*(eb+es)
 
 ### check that we've got this correct
 assert sympy.expand(Vbp) == sympy.expand(Nbp-Nb*Np), "failed consistency check for Vbp"
@@ -149,7 +149,7 @@ assert sympy.expand(Vbp) == sympy.expand(Nbp-Nb*Np), "failed consistency check f
 Nam = N*(N-1) * ea2*exp(-eb)*exp(-es) * eb*exp(-ea)*exp(-es) \
       + N*(N-1)*(N-2) * (ea+es) * ea*eb*exp(-ea)*exp(-eb)*exp(-2*es)
 
-Vam = N*(N-1) * ea*eb*exp(-ea)*exp(-eb)*exp(-2*es) * (1 - ea - 2*es )
+Vam = N*R * ea*eb*exp(-ea)*exp(-eb)*exp(-2*es) * (1 - ea - 2*es )
 
 ### check that we've got this correct
 assert sympy.expand(Vam) == sympy.expand(Nam-Na*Nm), "failed consistency check for Vam"
@@ -159,7 +159,7 @@ assert sympy.expand(Vam) == sympy.expand(Nam-Na*Nm), "failed consistency check f
 Nbm = N*(N-1) * eb2*exp(-ea)*exp(-es) * ea*exp(-eb)*exp(-es) \
       + N*(N-1)*(N-2) * (eb+es) * ea*exp(-eb)*exp(-es) * eb*exp(-ea)*exp(-es)
 
-Vbm = N*(N-1) * eb*ea*exp(-eb)*exp(-ea)*exp(-2*es) * (1 - eb - 2*es )
+Vbm = N*R * eb*ea*exp(-eb)*exp(-ea)*exp(-2*es) * (1 - eb - 2*es )
 
 ### check that we've got this correct
 assert sympy.expand(Vbm) == sympy.expand(Nbm-Nb*Nm), "failed consistency check for Vbm"
@@ -170,7 +170,7 @@ Ncp = N*(N-1) * ( (ea2*eb + 2*ea*eb*es + eb*es2 + ea2*es + 2*ea*es2 + es3)*(eb+e
                  + (eb2*ea + 2*eb*ea*es + ea*es2 + eb2*es + 2*eb*es2 + es3)*(ea+es) ) \
       + N*(N-1)*(N-2) * (ea*eb + es*(ea+eb) + es2) * (ea+es) * (eb+es)
 
-Vcp = N*(N-1) * ( (ea*eb + es*(ea+eb + es))*(ea+eb+4*es) + es*(ea+eb+2*es) )
+Vcp = N*R * ( (ea*eb + es*(ea+eb + es))*(ea+eb+4*es) + es*(ea+eb+2*es) )
 
 ### check that we've got this correct
 assert sympy.expand(Vcp) == sympy.expand(Ncp-Nc*Np), "failed consistency check for Vcp"
@@ -179,7 +179,7 @@ assert sympy.expand(Vcp) == sympy.expand(Ncp-Nc*Np), "failed consistency check f
 
 Ncm = N*(N-1)*(N-2) * (ea*eb + es*(ea+eb) + es2) * ea*exp(-eb)*exp(-es) * eb*exp(-ea)*exp(-es)
 
-Vcm = -2*N*(N-1) * ea*eb*exp(-ea)*exp(-eb)*exp(-2*es) * (ea*eb + es*(ea+eb+es) + es)
+Vcm = -2*N*R * ea*eb*exp(-ea)*exp(-eb)*exp(-2*es) * (ea*eb + es*(ea+eb+es) + es)
 
 ### check that we've got this correct
 assert sympy.expand(Vcm) == sympy.expand(Ncm-Nc*Nm), "failed consistency check for Vcm"
@@ -191,9 +191,9 @@ Npm = N*(N-1) * ea2*exp(-eb)*exp(-es) * eb2*exp(-ea)*exp(-es) \
                          + eb2*exp(-ea)*exp(-es) * (ea+es)*ea*exp(-eb)*exp(-es) ) \
       + N*(N-1)*(N-2)*(N-3) * (ea+es) * (eb+es) * ea*exp(-eb)*exp(-es) * eb*exp(-ea)*exp(-es)
 
-Vpm = N*(N-1) * ea*eb*exp(-ea)*exp(-eb)*exp(-2*es) * ( (1+ea)*(1+eb) + 2*(ea+es)*(eb+es) \
+Vpm = N*R * ea*eb*exp(-ea)*exp(-eb)*exp(-2*es) * ( (1+ea)*(1+eb) + 2*(ea+es)*(eb+es) \
                                                         - (1+ea)*(eb+es) - (ea+es)*(1+eb) \
-                                                       + (N-1) * ((1+ea)*(eb+es) + (ea+es)*(1+eb) \
+                                                       + R * ((1+ea)*(eb+es) + (ea+es)*(1+eb) \
                                                                    - 4*(ea+es)*(eb+es)) \
                                                      )
 
@@ -208,9 +208,9 @@ assert sympy.expand(Vpm) == sympy.expand(Npm-Np*Nm), "failed consistency check f
 t1, t2 = sympy.symbols("tau_1 tau_2")
 ### t1 <= t2
 
-N, R = sympy.symbols("N_1 R_1")
+N = sympy.symbols("N_1")
 ### N = T/(2*t1)
-### R = N1-1
+R = N-1
 
 z = t2/t1
 ### z = N/n >= 1 -> N >= n
@@ -218,7 +218,7 @@ z = t2/t1
 
 n = N/z
 ### n = T/(2*t2)
-### r = N2-1
+r = N-1
 
 e1a = 2*t1*ra
 e1b = 2*t1*rb
@@ -281,9 +281,13 @@ Nc1c2 = n * z *(e1a2*e1b2 + 2*e1a2*e1b*e1s + e1a2*e1s2 + 2*e1a*e1b2*e1s + 4*e1a*
         + n * z*(z-1)*(z-2) * (e1a*e1b + e1a*e1s + e1b*e1s + e1s2)*(e1a+e1s)*(e1b+e1s) \
         + n*(n-1) * z * (e1a*e1b + e1a*e1s + e1b*e1s + e1s2) * ( z * (e1a*e1b + e1a*e1s + e1b*e1s + e1s2) + z*(z-1) * (e1a+e1s)*(e1b+e1s) )
 
-Nc1p2 = 0
+Nc1p2 = n*(n-1) * ( (z*(e1a2*e1b + e1a2*e1s + 2*e1a*e1b*e1s + 2*e1a*e1s2 + e1b*e1s2 + e1s3) \
+                      + z*(z-1)*(e1a*e1b+e1a*e1s+e1b*e1s+e1s2)*(e1a+e1s))* z*(e1b+e1s) \
+                    + (z*(e1b2*e1a + e1b2*e1s + 2*e1b*e1a*e1s + 2*e1b*e1s2 + e1a*e1s2 + e1s3) \
+                      + z*(z-1)*(e1b*e1a+e1b*e1s+e1a*e1s+e1s2)*(e1b+e1s))* z*(e1a+e1s) ) \
+        + n*(n-1)*(n-2) * z*(e1a*e1b+e1a*e1s+e1b*e1s+e1s2) * z*(e1a+e1s) + z*(e1b+e1s) 
 
-Nc1m2 = 0
+Nc1m2 = n*(n-1)*(n-2) * z*(e1a*e1b + e1a*e1s + e1b*e1s + e1s2) * z*e1a*exp(-z*e1b)*exp(-z*e1s) * z*e1b*exp(-z*e1a)*exp(-z*e1s)
 
 Np1c2 = 0
 
@@ -300,12 +304,52 @@ Nm1m2 = 0
 #========================
 ### Variances
 #========================
+print "WARNING: multi-tau variances have not been symplified analytically..."
+
 Vc1c2 = Nc1c2 - Nc1*Nc2
+
+Vc1p2 = Nc1p2 - Nc1*Np2
+
+Vc1m2 = Nc1m2 - Nc1*Nm2
+
+Vp1c2 = Np1c2 - Np1*Nc2
+
+Vp1p2 = Np1p2 - Np1*Np2
+
+Vp1m2 = Np1m2 - Np1*Nm2
+
+Vm1c2 = Nm1c2 - Nm1*Nc2
+
+Vm1p2 = Nm1p2 - Nm1*Np2
+
+Vm1m2 = Nm1m2 - Nm1*Nm2
 
 ### check that we've got this correct
 assert sympy.expand(Vc1c2) == sympy.expand(Nc1c2 - Nc1*Nc2), "failed consistency check for Vc1c2"
 
+### check that we've got this correct
+assert sympy.expand(Vc1p2) == sympy.expand(Nc1p2 - Nc1*Np2), "failed consistency check for Vc1c2"
 
+### check that we've got this correct
+assert sympy.expand(Vc1m2) == sympy.expand(Nc1m2 - Nc1*Nm2), "failed consistency check for Vc1c2"
+
+### check that we've got this correct
+assert sympy.expand(Vp1c2) == sympy.expand(Np1c2 - Np1*Nc2), "failed consistency check for Vc1c2"
+
+### check that we've got this correct
+assert sympy.expand(Vp1p2) == sympy.expand(Np1p2 - Np1*Np2), "failed consistency check for Vc1c2"
+
+### check that we've got this correct
+assert sympy.expand(Vp1m2) == sympy.expand(Np1m2 - Np1*Nm2), "failed consistency check for Vc1c2"
+
+### check that we've got this correct
+assert sympy.expand(Vm1c2) == sympy.expand(Nm1c2 - Nm1*Nc2), "failed consistency check for Vc1c2"
+
+### check that we've got this correct
+assert sympy.expand(Vm1p2) == sympy.expand(Nm1p2 - Nm1*Np2), "failed consistency check for Vc1c2"
+
+### check that we've got this correct
+assert sympy.expand(Vm1m2) == sympy.expand(Nm1m2 - Nm1*Nm2), "failed consistency check for Vc1c2"
 
 #=================================================
 # All consistency passes check, so we can now move on with the approximation of the likelihood!
