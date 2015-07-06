@@ -289,17 +289,58 @@ Nc1p2 = n*(n-1) * ( (z*(e1a2*e1b + e1a2*e1s + 2*e1a*e1b*e1s + 2*e1a*e1s2 + e1b*e
 
 Nc1m2 = n*(n-1)*(n-2) * z*(e1a*e1b + e1a*e1s + e1b*e1s + e1s2) * z*e1a*exp(-z*e1b)*exp(-z*e1s) * z*e1b*exp(-z*e1a)*exp(-z*e1s)
 
-Np1c2 = 0
+Np1c2 = n * ( z*(z-1)*((e1a2*e1b + e1a2*e1s + 2*e1a*e1b*e1s + 2*e1a*e1s2 + e1b*e1s2 + e1s3)*(e1b+e1s) \
+                      +(e1b2*e1a + e1b2*e1s + 2*e1b*e1a*e1s + 2*e1b*e1s2 + e1a*e1s2 + e1s3)*(e1a+e1s) )
+             + z*(z-1)*(z-2)* ( (e1a2 + 2*e1a*e1s + e1s2)*(e1b+e1s)**2 + (e1a+e1s)**2*(e1b2 + 2*e1b*e1s + e1s2) \
+                                 + 3*(e1a*e1b + e1a*e1s + e1b*e1s + e1s2)*(e1a+e1s)*(e1b+e1s) ) \
+             + z*(z-1)*(z-2)*(z-3) * (e1a+e1s)**2 * (e1b+e1s)**2 ) \
+        + n * (z*(e1a2*e1b + e1a2*e1s + 2*e1a*e1b*e1s + 2*e1a*e1s2 + e1b*e1s2 + e1s3) \
+               + z*(z-1)*(2*(e1a*e1b + e1a*e1s + e1b*e1s + e1s2)*(e1a+e1s)*(e1b+e1s) \
+                           + (e1a2+2*e1a*e1s+e1s2)*(e1b+e1s)) \
+               + z*(z-1)*(z-2)*(e1a+e1s)**2*(e1b+e1s) ) * (N-z)*(e1b+e1s) \
+        + n * (z*(e1b2*e1a + e1b2*e1s + 2*e1b*e1a*e1s + 2*e1b*e1s2 + e1a*e1s2 + e1s3) \
+               + z*(z-1)*(2*(e1b*e1a + e1b*e1s + e1a*e1s + e1s2)*(e1b+e1s)*(e1a+e1s) \
+                           + (e1b2+2*e1b*e1s+e1s2)*(e1a+e1s)) \
+               + z*(z-1)*(z-2)*(e1b+e1s)**2*(e1a+e1s) ) * (N-z)*(e1a+e1s) \
+        + n * (z*(e1a*e1b + e1a*e1s + e1b*e1s + e1s2) + z*(z-1)*(e1a+e1s)*(e1b+e1s) ) * (N-z)*(N-z-1)*(e1a+e1s)*(e1b+e1s)
 
-Np1p2 = 0
+Np1p2 = n * (z*(z-1)*( (e1a2 + 2*e1a*e1s + e1s2)*(e1b2 + 2*e1b*e1s + e1s2) + (e1a*e1b + e1a*e1s + e1b*e1s + e1s2) ) \
+             + z*(z-1)*(z-2)*( (e1a2 + 2*e1a*e1s + e1s2)*(e1b+e1s)**2 + (e1a+e1s)**2*(e1b2 + 2*e1b*e1s+e1s2) + 2*(e1a*e1b+e1a*e1s+e1b*e1s + e1s2)*(e1a+e1s)*(e1b+e1s) ) 
+             + z*(z-1)*(z-2)*(z-3)*(e1a+e1s)**2 * (e1b+e1s)**2 ) \
+        + n * (z*(z-1)*( (e1a2+2*e1a*e1s+e1s2)*(e1b+e1s) + (e1a*e1b+e1a*e1s+e1b*e1s+e1s2)*(e1a+e1s) ) \
+               + z*(z-1)*(z-2)*(e1a+e1s)**2 * (e1b+e1s) )*(N-z)*(e1b+e1s) \
+        + n * (z*(z-1)*( (e1b2+2*e1b*e1s+e1s2)*(e1a+e1s) + (e1a*e1b+e1a*e1s+e1b*e1s+e1s2)*(e1b+e1s) ) \
+               + z*(z-1)*(z-2)*(e1b+e1s)**2 * (e1a+e1s) )*(N-z)*(e1a+e1s) \
+        + n*z*(z-1)*(e1a+e1s)*(e1b+e1s)*(N-z)*(N-z-1)*(e1a+e1s)*(e1b+e1s)
 
-Np1m2 = 0
+Np1m2 = n * ( z*(z-1) * e1a2 * e1b2 * exp(-e1a)*exp(-e1b)*exp(-2*e1s) \
+              + z*(z-1)*(z-2) * ( e1a2*e1b*(e1b+e1s) + e1b2*e1a*(e1a+e1s) )*exp(-e1a)*exp(-e1b)*exp(-2*e1s) \
+              + z*(z-1)*(z-2)*(z-3) * e1a*e1b*(e1a+e1s)*(e1b+e1s)*exp(-e1a)*exp(-e1b)*exp(-2*e1s) ) \
+        + n * (z*(z-1) *e1a2*e1b*exp(-e1a)*exp(-e1b)*exp(-2*e1s) + z*(z-1)*(z-2)*e1a*e1b*(e1a+e1s)*exp(-e1a)*exp(-e1b)*exp(-2*e1s) )*(N-z)*(e1b+e1s) \
+        + n * (z*(z-1) *e1b2*e1a*exp(-e1a)*exp(-e1b)*exp(-2*e1s) + z*(z-1)*(z-2)*e1b*e1a*(e1b+e1s)*exp(-e1a)*exp(-e1b)*exp(-2*e1s) )*(N-z)*(e1a+e1s) \
+        + n*z*(z-1)*e1a * e1b * exp(-e1a)*exp(-e1b)*exp(-2*e1s) * (N-z)*(N-z-1)*(e1a+e1s)*(e1b+e1s)
 
-Nm1c2 = 0
+Nm1c2 = n * ( z*(z-1)*(z-2) * ((e1a*e1b + e1a*e1s + e1b*e1s + e1s2) * e1a*exp(-e1b)*exp(-e1s) * e1b*exp(-e1a)*exp(-e1s) \
+                               + e1a2 * exp(-e1b)*exp(-e1s) * (e1b+e1s) * e1b*exp(-e1a)*exp(-e1s) \
+                               + e1b2 * exp(-e1a)*exp(-e1s) * (e1a+e1s) * e1a*exp(-e1b)*exp(-e1s) ) \
+              + z*(z-1)*(z-2)*(z-3) * ((e1a+e1s)*(e1b+e1s) * e1a*exp(-e1b)*exp(-e1s) * e1b*exp(-e1a)*exp(-e1s) ) ) \
+        + n * ( z*(z-1)*( e1a2*exp(-e1b)*exp(-e1s)*(e1b+e1s) + (e1a*e1b + e1a*e1s+e1b*e1s + e1s2)*e1a*exp(-e1b)*exp(-e1s) ) \
+                + z*(z-1)*(z-2)*(e1a+e1s)*(e1b+e1s)*e1a*exp(-e1b)*exp(-e1s) ) * (N-z)* e1b*exp(-e1a)*exp(-e1s) \
+        + n * ( z*(z-1)*( e1b2*exp(-e1a)*exp(-e1s)*(e1a+e1s) + (e1b*e1a + e1b*e1s+e1a*e1s + e1s2)*e1b*exp(-e1a)*exp(-e1s) ) \
+                + z*(z-1)*(z-2)*(e1b+e1s)*(e1a+e1s)*e1b*exp(-e1a)*exp(-e1s) ) * (N-z)* e1a*exp(-e1b)*exp(-e1s) \
+        + n * ( z*(e1a+e1s)*(e1b+e1s) + z*(z-1)*(e1a+e1s)*(e1b+e1s) )*(N-z)*(N-z-1)*e1a*e1b*exp(-e1a)*exp(-e1b)*exp(-2*e1s) 
 
-Nm1p2 = 0
+Nm1p2 = n*(z*(z-1)*e1a2*e1b2*exp(-e1a)*exp(-e1b)*exp(-2*e1s) + z*(z-1)*(z-2)*(e1a2*e1b*(e1b+e1s) + e1b2*e1a*(e1a+e1s))*exp(-e1a)*exp(-e1b)*exp(-2*e1s) \
+           + z*(z-1)*(z-2)*(z-3)*e1a*e1b*(e1a+e1s)*(e1b+e1s)*exp(-e1a)*exp(-e1b)*exp(-2*e1s) ) \
+        + n *(z*(z-1)*e1a2*(e1b+e1s) + z*(z-1)*(z-2)*(e1a+e1s)*(e1b+e1s)*e1a)*(N-z)*e1b*exp(-e1a)*exp(-e1b)*exp(-2*e1s) \
+        + n *(z*(z-1)*e1b2*(e1a+e1s) + z*(z-1)*(z-2)*(e1b+e1s)*(e1a+e1s)*e1b)*(N-z)*e1a*exp(-e1a)*exp(-e1b)*exp(-2*e1s) \
+        + n*z*(z-1)*(e1a+e1s)*(e1b+e1s)*e1a*e1b*exp(-e1a)*exp(-e1b)*exp(-2*e1s)
 
-Nm1m2 = 0
+Nm1m2 = n*(z*(z-1)*(e1a2*e1b2*exp(-e1a)*exp(-e1b)*exp(-2*e1s)) + z*(z-1)*(z-2)*(e1a2*e1b**2 + e1b2*e1a**2)*exp(-e1a)*exp(-e1b)*exp(-2*e1s) \
+           + z*(z-1)*(z-2)*(z-3)*e1a**2*e1b**2*exp(-e1a)*exp(-e1b)*exp(-2*e1s) ) \
+        + n*(z*(z-1)*e1a2*e1b + z*(z-1)*(z-2)*e1a**2*e1b)*(N-z)*e1b*exp(-e1a)*exp(-e1b)*exp(-2*e1s) \
+        + n*(z*(z-1)*e1b2*e1a + z*(z-1)*(z-2)*e1b**2*e1a)*(N-z)*e1a*exp(-e1a)*exp(-e1b)*exp(-2*e1s) \
+        + n*z*(z-1)*(N-z)*(N-z-1)*e1a**2 *e1b**2 *exp(-2*e1a)*exp(-2*e1b)*exp(-4*e1s)
 
 #========================
 ### Variances

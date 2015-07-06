@@ -1,4 +1,4 @@
-description = """ written to house posteriors and priors for bayesian integrals given data """
+dbescription = """ written to house posteriors and priors for bayesian integrals given data """
 author = "R. Essick (ressick@mit.edu)"
 
 #=================================================
@@ -111,7 +111,7 @@ class Posterior(object):
 		return len(self.data)
 
 	###
-	def __call__(self, rateA, rateB, rateS):
+	def __call__(self, rateA, rateB, rateS, exclude_Nc=False):
 		"""
 		computes the log posterior
 
@@ -122,7 +122,7 @@ class Posterior(object):
 			for datum in self.data:
 				post +=  analytics.gaussian_likelihood(datum.dA, datum.dB, datum.Nc, datum.Np, datum.Nm, \
 			                                      rateA, rateB, rateS, datum.tau, T=datum.T, R=datum.R, \
-			                                      p=datum.p, q=datum.q) \
+			                                      p=datum.p, q=datum.q, exclude_Nc=exclude_Nc) \
 				         + self.prior(rateA, rateB, rateS, datum.tau, datum.T, datum.R)
 			return post
 		else:
@@ -138,7 +138,7 @@ class Posterior(object):
 		return low, high
 
 	###
-	def marg_rateA(self, rateB, rateS, rateA=None, npts=1001, conf=0.99):
+	def marg_rateA(self, rateB, rateS, rateA=None, npts=1001, conf=0.99, exclude_Nc=False):
 		"""
 		compute the marginalized posterior for (rateB, rateS)
 		"""
@@ -149,13 +149,10 @@ class Posterior(object):
 			rateA = np.linspace(cil, cih, npts)
 
 		### compute marginalization through direct sum
-		ans = analytics.sum_logs([ self(rA, rateB, rateS) for rA in rateA ])
-		print ans
-		return ans
-#		return analytics.sum_logs([ self(rA, rateB, rateS) for rA in rateA ]) 
+		return analytics.sum_logs([ self(rA, rateB, rateS, exclude_Nc=exclude_Nc) for rA in rateA ]) 
 		
 	###		
-	def marg_rateB(self, rateA, rateS, rateB=None, npts=1001, conf=0.99):
+	def marg_rateB(self, rateA, rateS, rateB=None, npts=1001, conf=0.99, exclude_Nc=False):
 		"""
 		compute the marginalized posterior for (rateA, rateS)
 		"""
@@ -165,10 +162,10 @@ class Posterior(object):
 			cil = np.min([self.marg_range(max(0, datum.dB-datum.dA), confidence=conf)[0] / datum.T for datum in self.data ])
 			rateB = np.linspace(cil, cih, npts)
 		### compute marginalization through direct sum
-		return analytics.sum_logs([ self(rateA, rB, rateS) for rB in rateB ]) 	
+		return analytics.sum_logs([ self(rateA, rB, rateS, exclude_Nc=exclude_Nc) for rB in rateB ]) 	
 
 	###
-	def marg_rateS(self, rateA, rateB, rateS=None, npts=1001, conf=0.99):
+	def marg_rateS(self, rateA, rateB, rateS=None, npts=1001, conf=0.99, exclude_Nc=False):
 		"""
 		compute the marginalized posterior for (rateA, rateB)
 		"""
@@ -179,10 +176,10 @@ class Posterior(object):
 			rateS = np.linspace(cil, cih, npts)
 
 		### compute marginalization through direct sum
-		return analytics.sum_logs([ self(rateA, rateB, rS) for rS in rateS ]) 
+		return analytics.sum_logs([ self(rateA, rateB, rS, exclude_Nc=exclude_Nc) for rS in rateS ]) 
 
 	###
-	def marg_rateA_rateB(self, rateS, rateA=None, rateB=None, nptsA=1001, nptsB=1001, confA=0.99, confB=0.99):
+	def marg_rateA_rateB(self, rateS, rateA=None, rateB=None, nptsA=1001, nptsB=1001, confA=0.99, confB=0.99, exclude_Nc=False):
 		"""
 		compute the marginalized posterior for rateS
 		"""
@@ -201,10 +198,10 @@ class Posterior(object):
 		rateS = rateS*np.ones_like(rateA)
 
 		### compute marginalization through direct sum
-		return analytics.sum_logs(self(rateA, rateB, rateS).flatten())
+		return analytics.sum_logs(self(rateA, rateB, rateS, exclude_Nc=exclude_Nc).flatten())
 
 	###
-	def marg_rateA_rateS(self, rateB, rateA=None, rateS=None, nptsA=1001, nptsS=1001, confA=0.99, confS=0.99):
+	def marg_rateA_rateS(self, rateB, rateA=None, rateS=None, nptsA=1001, nptsS=1001, confA=0.99, confS=0.99, exclude_Nc=False):
 		"""
 		compute the marginalized posterior for rateB
 		"""
@@ -222,10 +219,10 @@ class Posterior(object):
 		rateB = rateB*np.ones_like(rateA)
 
 		### compute marginalization through direct sum
-		return analytics.sum_logs(self(rateA, rateB, rateS).flatten())
+		return analytics.sum_logs(self(rateA, rateB, rateS, exclude_Nc=exclude_Nc).flatten())
 	
 	###
-	def marg_rateB_rateS(self, rateA, rateB=None, rateS=None, nptsB=1001, nptsS=1001, confB=0.99, confS=0.99):
+	def marg_rateB_rateS(self, rateA, rateB=None, rateS=None, nptsB=1001, nptsS=1001, confB=0.99, confS=0.99, exclude_Nc=False):
 		"""
 		compute the marginalized posterior for rateA
 		"""
@@ -243,7 +240,7 @@ class Posterior(object):
 		rateA = rateA*np.ones_like(rateB)
 
 		### compute marginalization through direct sum
-		return analytics.sum_logs(self(rateA, rateB, rateS).flatten())
+		return analytics.sum_logs(self(rateA, rateB, rateS, exclude_Nc=exclude_Nc).flatten())
 
 
 

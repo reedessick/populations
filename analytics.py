@@ -12,11 +12,11 @@ from math import factorial
 #
 #=================================================
 
-def sum_logs(vec, axis=-1):
+def sum_logs(vec):
 	if not isinstance(vec, np.ndarray):
 		vec = np.array(vec)
 	max_vec = np.max(vec)
-	return np.log(np.sum(np.exp(vec-max_vec), axis=axis)) + max_vec
+	return np.log(np.sum(np.exp(vec-max_vec))) + max_vec
 
 def fast_fact(x, xmax=50):
         """
@@ -188,7 +188,7 @@ def Vpm(rateA, rateB, rateS, tau, T=1.0, R=1.0, p=1.0):
 # Likelihoods
 #
 #=================================================
-def gaussian_likelihood(d_A, d_B, N_c, N_p, N_m, rateA, rateB, rateS, tau, T=1.0, R=1.0, p=1.0, q=1.0):
+def gaussian_likelihood(d_A, d_B, N_c, N_p, N_m, rateA, rateB, rateS, tau, T=1.0, R=1.0, p=1.0, q=1.0, exclude_Nc=False):
 	"""
 	computes the likelihood through a gaussian approximation. This is known to be in error for small number statistics.
 	returns the log likelihood
@@ -202,46 +202,62 @@ def gaussian_likelihood(d_A, d_B, N_c, N_p, N_m, rateA, rateB, rateS, tau, T=1.0
 	npts = list(np.shape(rateA))
 	N = len(npts)
 
-	### ensure data are arrays
-	data = np.reshape( np.outer( np.array( [d_A, d_B, N_c, N_p, N_m] ), np.ones(npts) ), tuple([5]+npts) )
-
 	### compute means
 	m_dA = dA(rateA, rateS, T=T)
 	m_dB = dB(rateB, rateS, T=T)
-	m_Nc = Nc(rateA, rateB, rateS, tau, T=T, p=p, q=q)
 	m_Np = Np(rateA, rateB, rateS, tau, T=T, R=R, p=p)
 	m_Nm = Nm(rateA, rateB, rateS, tau, T=T, R=R, p=p)
-
-	means = np.array( [ m_dA, m_dB, m_Nc, m_Np, m_Nm ] )
 
 	### compute covariance matrix
 	vaa = Vaa(rateA, rateS, T=T)
 	vbb = Vbb(rateB, rateS, T=T)
-	vcc = Vcc(rateA, rateB, rateS, tau, T=T, p=p, q=q)
 	vpp = Vpp(rateA, rateB, rateS, tau, T=T, R=R, p=p)
 	vmm = Vmm(rateA, rateB, rateS, tau, T=T, R=R, p=p)
 
 	vab = Vab(rateS, T=T)
-	vac = Vac(rateA, rateB, rateS, tau, T=T, p=p, q=q)
 	vap = Vap(rateA, rateB, rateS, tau, T=T, R=R, p=p)
 	vam = Vam(rateA, rateB, rateS, tau, T=T, R=R, p=p)
 
-	vbc = Vbc(rateA, rateB, rateS, tau, T=T, p=p, q=q)
 	vbp = Vbp(rateA, rateB, rateS, tau, T=T, R=R, p=p)
 	vbm = Vbm(rateA, rateB, rateS, tau, T=T, R=R, p=p)
 
-	vcp = Vcp(rateA, rateB, rateS, tau, T=T, R=R, p=p, q=q)
-	vcm = Vcm(rateA, rateB, rateS, tau, T=T, R=R, p=p)
-	
 	vpm = Vpm(rateA, rateB, rateS, tau, T=T, R=R, p=p)
 
-	cov = np.array( [ [vaa, vab, vac, vap, vam],
-	                  [vab, vbb, vbc, vbp, vbm],
-	                  [vac, vbc, vcc, vcp, vcm],
-	                  [vap, vbp, vcp, vpp, vpm],
-	                  [vam, vbm, vcm, vpm, vmm]
-	                ] 
-	              )
+
+	### ensure data are arrays
+	if exclude_Nc:
+		D = 4 ### dimensionality of the data
+
+		data = np.reshape( np.outer( np.array( [d_A, d_B, N_p, N_m] ), np.ones(npts) ), tuple([D]+npts) )
+		means = np.array( [ m_dA, m_dB, m_Np, m_Nm ] )
+		
+		cov = np.array( [ [vaa, vab, vap, vam],
+		                  [vab, vbb, vbp, vbm],
+		                  [vap, vbp, vpp, vpm],
+		                  [vam, vbm, vpm, vmm]
+		                ] 
+		              )
+		
+	else:
+		D = 5 ### dimensionality of the data
+
+		m_Nc = Nc(rateA, rateB, rateS, tau, T=T, p=p, q=q)
+		vcc = Vcc(rateA, rateB, rateS, tau, T=T, p=p, q=q)
+		vac = Vac(rateA, rateB, rateS, tau, T=T, p=p, q=q)
+		vbc = Vbc(rateA, rateB, rateS, tau, T=T, p=p, q=q)
+		vcp = Vcp(rateA, rateB, rateS, tau, T=T, R=R, p=p, q=q)
+		vcm = Vcm(rateA, rateB, rateS, tau, T=T, R=R, p=p)
+
+		data = np.reshape( np.outer( np.array( [d_A, d_B, N_c, N_p, N_m] ), np.ones(npts) ), tuple([D]+npts) )
+		means = np.array( [ m_dA, m_dB, m_Nc, m_Np, m_Nm ] )
+
+		cov = np.array( [ [vaa, vab, vac, vap, vam],
+		                  [vab, vbb, vbc, vbp, vbm],
+		                  [vac, vbc, vcc, vcp, vcm],
+		                  [vap, vbp, vcp, vpp, vpm],
+		                  [vam, vbm, vcm, vpm, vmm]
+		                ] 
+		              )
 
 	cov = np.transpose(cov, tuple(range(2,N+2)+[0,1])) ### just in case we have arrays
 
@@ -294,9 +310,9 @@ def gaussian_likelihood(d_A, d_B, N_c, N_p, N_m, rateA, rateB, rateS, tau, T=1.0
 	x = np.transpose(data-means)
 
 	if len(npts) == 1:
-		x = np.diagonal( np.reshape( np.outer( x, x ), tuple(npts + [5] + npts + [5]) ) , axis1=0, axis2=2 ).transpose((2,0,1))
+		x = np.diagonal( np.reshape( np.outer( x, x ), tuple(npts + [D] + npts + [D]) ) , axis1=0, axis2=2 ).transpose((2,0,1))
 	else:
-		x = np.reshape( np.outer( x, x ), tuple(npts + [5] + npts + [5]) )
+		x = np.reshape( np.outer( x, x ), tuple(npts + [D] + npts + [D]) )
 		for i in xrange(N): ### iteratively take the diagonal... 
 			x = np.diagonal( x, axis1=0, axis2=N+1-i )
 		x = np.transpose( x, tuple(range(2,N+2) + [0, 1]) ) # transpose
@@ -309,7 +325,7 @@ def gaussian_likelihood(d_A, d_B, N_c, N_p, N_m, rateA, rateB, rateS, tau, T=1.0
 	else:
 		return ans
 
-
+###
 def my_det(x):
 	if isinstance(x, (int, float)):
 		return x

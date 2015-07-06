@@ -6,6 +6,7 @@ author = "R. Essick (reed.essick@ligo.org)"
 #=================================================
 
 import bayes
+analytics = bayes.analytics
 
 import numpy as np
 import pickle
@@ -13,6 +14,7 @@ import pickle
 import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt
+from matplotlib.colors import LogNorm
 
 from optparse import OptionParser
 
@@ -28,8 +30,15 @@ parser.add_option("", "--test", default=False, action="store_true")
 
 parser.add_option("-g", "--grid", default=False, action="store_true")
 
+parser.add_option("", "--oneD", default=False, action="store_true")
+parser.add_option("", "--twoD", default=False, action="store_true")
+
 parser.add_option("-t", "--tag", default="", type="string")
 parser.add_option("-o", "--output-dir", default="./", type="string")
+
+parser.add_option("-n", "--npts", default=20, type="int")
+
+parser.add_option("", "--exclude-Nc", default=False, action="store_true")
 
 opts, args = parser.parse_args()
 
@@ -39,7 +48,7 @@ if len(args) != 1:
         raise ValueError("please supply exactly 1 argument")
 datafilename = args[0]
 
-it opts.tag:
+if opts.tag:
 	opts.tag = "_%s"%opts.tag
 
 #=================================================
@@ -90,38 +99,36 @@ if opts.verbose:
 	print "testing functionality"
 
 import time
-npts = 101
 shape = (3,2)
 conf = 0.9
 eps = 1e-6 ### a small positive definite number to make sure that the covariance matrix is not rank deficient.
 
 ### test range functionality
 
-print "range A : conf=%f ,npts=%d"%(conf, npts)
+print "range A : conf=%f ,npts=%d"%(conf, opts.npts)
 to=time.time()
-cih = np.max([posterior.marg_range(datum.dA, confidence=conf)[1] / datum.T for datum in posterior.data ])
-cil = max(np.min([posterior.marg_range(max(0, datum.dA-datum.dB), confidence=conf)[0] / datum.T for datum in posterior.data ]), eps)
-rA = np.linspace(cil, cih, npts)
-#rA = np.linspace(0.06318, 0.10778, npts)
+#cih = np.max([posterior.marg_range(datum.dA, confidence=conf)[1] / datum.T for datum in posterior.data ])
+#cil = max(np.min([posterior.marg_range(max(0, datum.dA-datum.dB), confidence=conf)[0] / datum.T for datum in posterior.data ]), eps)
+#rA = np.linspace(cil, cih, opts.npts)
+rA = np.logspace(np.log10(0.0995), np.log10(0.1002), opts.npts)
 print rA
 print "\t", time.time()-to
 
-print "range B : conf=%f ,npts=%d"%(conf, npts)
+print "range B : conf=%f ,npts=%d"%(conf, opts.npts)
 to=time.time()
-cih = np.max([posterior.marg_range(datum.dB, confidence=conf)[1] / datum.T for datum in posterior.data ])
-cil = max(np.min([posterior.marg_range(max(0, datum.dB-datum.dA), confidence=conf)[0] / datum.T for datum in posterior.data ]), eps)
-rB = np.linspace(cil, cih, npts)
-#rB = np.linspace(1e-6, 3.44800000e-02, npts)
+#cih = np.max([posterior.marg_range(datum.dB, confidence=conf)[1] / datum.T for datum in posterior.data ])
+#cil = max(np.min([posterior.marg_range(max(0, datum.dB-datum.dA), confidence=conf)[0] / datum.T for datum in posterior.data ]), eps)
+#rB = np.linspace(cil, cih, opts.npts)
+rB = np.logspace(np.log10(0.0995), np.log10(0.1002), opts.npts)
 print rB
 print "\t", time.time()-to
 
-print "range S : conf=%f ,npts=%d"%(conf, npts)
+print "range S : conf=%f ,npts=%d"%(conf, opts.npts)
 to=time.time()
-cih = np.max([posterior.marg_range(min(datum.dA, datum.dB), confidence=conf)[1] / datum.T for datum in posterior.data ])
-cil = 0
-rS = np.linspace(cil, cih, npts)
-#rS = np.linspace(1e-6, 3.44800000e-02, npts)
-#rS = np.linspace(1e-6, 0.02, npts)
+#cih = np.max([posterior.marg_range(min(datum.dA, datum.dB), confidence=conf)[1] / datum.T for datum in posterior.data ])
+#cil = 0
+#rS = np.linspace(cil, cih, opts.npts)
+rS = np.logspace(np.log10(0.00095), np.log10(0.00110), opts.npts)
 print rS
 print "\t", time.time()-to
 
@@ -136,7 +143,7 @@ if opts.test:
 
 	print "posterior.__call__(1x%s array)"%str(shape)
 	ones = np.ones(shape)
-	#ones = np.arange(npts)+1
+	#ones = np.arange(opts.npts)+1
 	to=time.time()
 	print posterior(rateA*ones, rateB*ones, rateS*ones)
 	print "\t", time.time()-to
@@ -146,39 +153,39 @@ if opts.test:
 
 	print "marg_rateA"
 	to=time.time()
-	print posterior.marg_rateA(rateB, rateS, rateA=rA)
+	print posterior.marg_rateA(rateB, rateS, rateA=rA, exclude_Nc=opts.exclude_Nc)
 	print "\t", time.time()-to
 
 	print "marg_rateB"
 	to=time.time()
-	print posterior.marg_rateB(rateA, rateS, rateB=rB)
+	print posterior.marg_rateB(rateA, rateS, rateB=rB, exclude_Nc=opts.exclude_Nc)
 	print "\t", time.time()-to
 
 	print "marg_rateS"
 	to=time.time()
-	print posterior.marg_rateS(rateA, rateB, rateS=rS)
+	print posterior.marg_rateS(rateA, rateB, rateS=rS, exclude_Nc=opts.exclude_Nc)
 	print "\t", time.time()-to
 
 	print "marg_rateA_rateB"
 	to=time.time()
-	print posterior.marg_rateA_rateB(rateS, rateA=rA, rateB=rB)
+	print posterior.marg_rateA_rateB(rateS, rateA=rA, rateB=rB, exclude_Nc=opts.exclude_Nc)
 	print "\t", time.time()-to
 
 	print "marg_rateA_rateS"
 	to=time.time()
-	print posterior.marg_rateA_rateS(rateB, rateA=rA, rateS=rS)
+	print posterior.marg_rateA_rateS(rateB, rateA=rA, rateS=rS, exclude_Nc=opts.exclude_Nc)
 	print "\t", time.time()-to
 
 	print "marg_rateB_rateS"
 	to=time.time()
-	print posterior.marg_rateB_rateS(rateA, rateB=rB, rateS=rS)
+	print posterior.marg_rateB_rateS(rateA, rateB=rB, rateS=rS, exclude_Nc=opts.exclude_Nc)
 	print "\t", time.time()-to
 
 #=================================================
 if opts.verbose:
 	print "plotting posteriors"
 ones = np.ones(2)
-N = npts/5
+N = opts.npts/2
 
 
 ### too memory intensive!
@@ -192,231 +199,295 @@ to=time.time()
 likelihoods = posterior(RA, RB, RS)
 print "\t", time.time()-to
 '''
+
+
+
 #========================
 ### 1D posteriors
 #========================
+if opts.oneD:
+	### rateA
+	if opts.verbose:
+	        print "rateA"
 
-### rateA
-if opts.verbose:
-        print "rateA"
+	to=time.time()
 
-to=time.time()
+	fig = plt.figure()
+	ax = plt.subplot(1,1,1)
 
-fig = plt.figure()
-ax = plt.subplot(1,1,1)
+	if opts.verbose:
+	        print "\tcomputing post"
 
-if opts.verbose:
-        print "\tcomputing post"
-post = np.empty_like(rA)
-for i in xrange(len(rA)):
-	t0 = time.time()
-        post[i] = np.sum([ posterior.marg_rateB_rateS(rA[i], rateS=rS, rateB=rB[i*N:(i+1)*N]) for i in xrange(len(rB)/N+1) ])
-	print time.time()-t0
+	post = np.empty_like(rA)
+	for j in xrange(len(rA)):
+	        post[j] = posterior.marg_rateB_rateS(rA[j], rateB=rB, rateS=rS, exclude_Nc=opts.exclude_Nc)
+#       	 post[j] = np.sum([ posterior.marg_rateB_rateS(rA[i], rateS=rS, rateB=rB[i*N:(i+1)*N], exclude_Nc=opts.exclude_Nc) for i in xrange(len(rB)/N+1) ])
 
-ax.plot(rS, post)
+	post -= analytics.sum_logs(post)
+	post = np.exp(post)
 
-ax.set_xlabel("$\lambda_A$")
+	ax.plot(rA, post, marker='o')
 
-ax.grid(opts.grid)
+	ax.set_xlabel("$\lambda_A$")
+	ax.set_ylabel("$p(\lambda_A)$")
 
-ylim = ax.get_ylim()
+	ax.grid(opts.grid, which="both")
 
-ax.plot(rateS*ones, ylim, 'k', alpha=0.5)
+	ylim = ax.get_ylim()
 
-figname = "%s/rateA%s.png"%(opts.output_dir, opts.tag)
-if opts.verbose:
-        print "\t", figname
-fig.savefig(figname)
-plt.close(fig)
+	ax.plot(rateA*ones, ylim, 'r', alpha=0.5)
+	
+#	ax.set_xscale('log')
 
-print "\t", time.time()-to
+	ax.set_ylim(ylim)
+	ax.set_xlim(xmin=np.min(rA), xmax=np.max(rA))
 
-if opts.verbose:
-        print "\tcomputing post"
-### rateB 
-if opts.verbose:
-        print "rateB"
+	figname = "%s/rateA%s.png"%(opts.output_dir, opts.tag)
+	if opts.verbose:
+        	print "\t", figname
+	fig.savefig(figname)
+	plt.close(fig)
 
-to=time.time()
+	print "\t", time.time()-to
 
-fig = plt.figure()
-ax = plt.subplot(1,1,1)
+	### rateB 
+	if opts.verbose:
+	        print "rateB"
 
-post = np.empty_like(rB)
-for i in xrange(len(rB)):
-        post[i] = posterior.marg_rateA_rateS(rB[i], rateA=rA, rateS=rS)
+	to=time.time()
 
-ax.plot(rB, post)
+	fig = plt.figure()
+	ax = plt.subplot(1,1,1)
 
-ax.set_xlabel("$\lambda_B$")
+	if opts.verbose:
+        	print "\tcomputing post"
+	post = np.empty_like(rB)
+	for j in xrange(len(rB)):
+        	post[j] = posterior.marg_rateA_rateS(rB[j], rateA=rA, rateS=rS, exclude_Nc=opts.exclude_Nc)
 
-ax.grid(opts.grid)
+	post -= analytics.sum_logs(post)
+	post = np.exp(post) 
 
-ylim = ax.get_ylim()
+	ax.plot(rB, post, marker='o')
 
-ax.plot(rateS*ones, ylim, 'k', alpha=0.5)
+	ax.set_xlabel("$\lambda_B$")
+	ax.set_ylabel("$p(\lambda_B)$")
 
-figname = "%s/rateB%s.png"%(opts.output_dir, opts.tag)
-if opts.verbose:
-        print "\t", figname
-fig.savefig(figname)
-plt.close(fig)
+	ax.grid(opts.grid, which="both")
 
-print "\t", time.time()-to
+	ylim = ax.get_ylim()
 
-### rateS
-if opts.verbose:
-        print "rateA"
+	ax.plot(rateB*ones, ylim, 'r', alpha=0.5)
 
-to=time.time()
+#	ax.set_xscale('log')
 
-fig = plt.figure()
-ax = plt.subplot(1,1,1)
+	ax.set_ylim(ylim)
+	ax.set_xlim(xmin=np.min(rB), xmax=np.max(rB))
 
-if opts.verbose:
-        print "\tcomputing post"
-post = np.empty_like(rS)
-for i in xrange(len(rS)):
-        post[i] = posterior.marg_rateA_rateB(rS[i], rateA=rA, rateB=rB)
+	figname = "%s/rateB%s.png"%(opts.output_dir, opts.tag)
+	if opts.verbose:
+        	print "\t", figname
+	fig.savefig(figname)
+	plt.close(fig)
 
-ax.plot(rS, post)
+	print "\t", time.time()-to
 
-ax.set_xlabel("$\lambda_S$")
+	### rateS
+	if opts.verbose:
+        	print "rateS"
 
-ax.grid(opts.grid)
+	to=time.time()
 
-ylim = ax.get_ylim()
+	fig = plt.figure()
+	ax = plt.subplot(1,1,1)
 
-ax.plot(rateS*ones, ylim, 'k', alpha=0.5)
+	if opts.verbose:
+        	print "\tcomputing post"
+	post = np.empty_like(rS)
+	for j in xrange(len(rS)):
+        	post[j] = posterior.marg_rateA_rateB(rS[j], rateA=rA, rateB=rB, exclude_Nc=opts.exclude_Nc)
 
-figname = "%s/rateS%s.png"%(opts.output_dir, opts.tag)
-if opts.verbose:
-        print "\t", figname
-fig.savefig(figname)
-plt.close(fig)
+	post -= analytics.sum_logs(post)
+	post = np.exp(post)
 
-print "\t", time.time()-to
+	ax.plot(rS, post, marker='o')
+
+	ax.set_xlabel("$\lambda_S$")
+	ax.set_ylabel("$p(\lambda_S)$")
+
+	ax.grid(opts.grid, which="both")
+
+	ylim = ax.get_ylim()
+
+	ax.plot(rateS*ones, ylim, 'r', alpha=0.5)
+
+#	ax.set_xscale('log')
+
+	ax.set_ylim(ylim)
+	ax.set_xlim(xmin=np.min(rS), xmax=np.max(rS))
+	
+	figname = "%s/rateS%s.png"%(opts.output_dir, opts.tag)
+	if opts.verbose:
+	        print "\t", figname
+	fig.savefig(figname)
+	plt.close(fig)
+
+	print "\t", time.time()-to
 
 #========================
 ### 2D posteriors
 #========================
-### rateA vs rateB
-if opts.verbose:
-	print "rateA vs rateB"
+if opts.twoD:
 
-to=time.time()
+	### rateA vs rateB
+	if opts.verbose:
+		print "rateA vs rateB"
 
-fig = plt.figure()
-ax = plt.subplot(1,1,1)
+	to=time.time()
 
-if opts.verbose:
-	print "\tcomputing post"
-RA, RB = np.meshgrid(rA, rB)
-post = np.empty_like(RA)
-for i in xrange(len(rA)):
-	for j in xrange(len(rB)):
-		post[i,j] = posterior.marg_rateS(rA[i], rB[j], rateS=rS)
+	fig = plt.figure()
+	ax = plt.subplot(1,1,1)
 
-ax.contour(RA, RB, post)
+	if opts.verbose:
+		print "\tcomputing post"
+	RA, RB = np.meshgrid(rA, rB)
+	post = np.empty_like(RA)
+	for i in xrange(len(rA)):
+		for j in xrange(len(rB)):
+			post[i,j] = posterior.marg_rateS(rA[i], rB[j], rateS=rS, exclude_Nc=opts.exclude_Nc)
 
-ax.set_xlabel("$\lambda_A$")
-ax.set_ylabel("$\labmda_B$")
+	post -= analytics.sum_logs([analytics.sum_logs(post[i]) for i in xrange(len(rA))])
+	post = np.exp(post)
 
-ax.grid(opts.grid)
+	ax.plot(RA, RB, marker='o', linestyle='none', markeredgecolor='k', markerfacecolor='none')
+	ax.contour(RA, RB, post, norm = LogNorm())
+#	ax.contour(RA, RB, post)
 
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
+	ax.set_xlabel("$\lambda_A$")
+	ax.set_ylabel("$\lambda_B$")
 
-ax.plot(xlim, rateB*ones, 'k', alpha=0.5)
-ax.plot(rateA*ones, ylim, 'k', alpha=0.5)
+	ax.grid(opts.grid, which="both")
 
-figname = "%s/rateA-rateB%s.png"%(opts.output_dir, opts.tag)
-if opts.verbose:
-	print "\t", figname
-fig.savefig(figname)
-plt.close(fig)
+	xlim = ax.get_xlim()
+	ylim = ax.get_ylim()
 
-print "\t", time.time()-to
+	ax.plot(xlim, rateB*ones, 'k', alpha=0.5)
+	ax.plot(rateA*ones, ylim, 'k', alpha=0.5)
 
-### rateA vs rateS
-if opts.verbose:
-	print "rateA vs rateS"
+#	ax.set_xscale('log')
+#	ax.set_yscale('log')
 
-to=time.time()
+	ax.set_xlim(xmin=np.min(rA), xmax=np.max(rA))
+	ax.set_ylim(ymin=np.min(rB), ymax=np.max(rB))
 
-fig = plt.figure()
-ax = plt.subplot(1,1,1)
+	figname = "%s/rateA-rateB%s.png"%(opts.output_dir, opts.tag)
+	if opts.verbose:
+		print "\t", figname
+	fig.savefig(figname)
+	plt.close(fig)
 
-if opts.verbose:
-	print "\tcomputing post"
-RA, RS = np.meshgrid(rA, rS)
-post = np.empty_like(RA)
-for i in xrange(len(rA)):
-	for j in xrange(len(rS)):
-		post[i,j] = posterior.marg_rateB(rA[i], rS[j], rateB=rB)
+	print "\t", time.time()-to
 
-ax.contour(RB, RS, post)
+	### rateA vs rateS
+	if opts.verbose:
+		print "rateA vs rateS"
 
-ax.set_xlabel("$\lambda_A$")
-ax.set_ylabel("$\labmda_S$")
+	to=time.time()
 
-ax.grid(opts.grid)
+	fig = plt.figure()
+	ax = plt.subplot(1,1,1)
 
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
+	if opts.verbose:
+		print "\tcomputing post"
+	RA, RS = np.meshgrid(rA, rS)
+	post = np.empty_like(RA)
+	for i in xrange(len(rA)):
+		for j in xrange(len(rS)):
+			post[i,j] = posterior.marg_rateB(rA[i], rS[j], rateB=rB, exclude_Nc=opts.exclude_Nc)
 
-ax.plot(xlim, rateS*ones, 'k', alpha=0.5)
-ax.plot(rateA*ones, ylim, 'k', alpha=0.5)
+	post -= analytics.sum_logs([analytics.sum_logs(post[i]) for i in xrange(len(rA))])
+	post = np.exp(post)
 
-figname = "%s/rateA-rateS%s.png"%(opts.output_dir, opts.tag)
-if opts.verbose:
-	print "\t", figname
-fig.savefig(figname)
-plt.close(fig)
+	ax.plot(RA, RS, marker='o', linestyle='none', markeredgecolor='k', markerfacecolor='none')
+	ax.contour(RA, RS, post, norm=LogNorm())
+#	ax.contour(RA, RS, post)
 
-print "\t", time.time()-to
+	ax.set_xlabel("$\lambda_A$")
+	ax.set_ylabel("$\lambda_S$")
 
-### rateB vs rateS
-if opts.verbose:
-	print "rateB vs rateS"
+	ax.grid(opts.grid, which="both")
+	
+	xlim = ax.get_xlim()
+	ylim = ax.get_ylim()
 
-to=time.time()
+	ax.plot(xlim, rateS*ones, 'k', alpha=0.5)
+	ax.plot(rateA*ones, ylim, 'k', alpha=0.5)
 
-fig = plt.figure()
-ax = plt.subplot(1,1,1)
+#	ax.set_xscale('log')
+#	ax.set_yscale('log')
 
-if opts.verbose:
-	print "\tcomputing post"
-RB, RS = np.meshgrid(rB, rS)
-post = np.empty_like(RB)
-for i in xrange(len(rB)):
-	for j in xrange(len(rS)):
-		post[i,j] = posterior.marg_rateA(rB[i], rS[j], rateA=rA)
+	ax.set_xlim(xmin=np.min(rA), xmax=np.max(rA))
+	ax.set_ylim(ymin=np.min(rS), ymax=np.max(rS))
 
-ax.contour(RB, RS, post)
+	figname = "%s/rateA-rateS%s.png"%(opts.output_dir, opts.tag)
+	if opts.verbose:
+		print "\t", figname
+	fig.savefig(figname)
+	plt.close(fig)
 
-ax.set_xlabel("$\lambda_B$")
-ax.set_ylabel("$\labmda_S$")
+	print "\t", time.time()-to
 
-ax.grid(opts.grid)
+	### rateB vs rateS
+	if opts.verbose:
+		print "rateB vs rateS"
 
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
+	to=time.time()
 
-ax.plot(xlim, rateS*ones, 'k', alpha=0.5)
-ax.plot(rateB*ones, ylim, 'k', alpha=0.5)
+	fig = plt.figure()
+	ax = plt.subplot(1,1,1)
 
-figname = "%s/rateB-rateS%s.png"%(opts.output_dir, opts.tag)
-if opts.verbose:
-	print "\t", figname
-fig.savefig(figname)
-plt.close(fig)
+	if opts.verbose:
+		print "\tcomputing post"
+	RB, RS = np.meshgrid(rB, rS)
+	post = np.empty_like(RB)
+	for i in xrange(len(rB)):
+		for j in xrange(len(rS)):
+			post[i,j] = posterior.marg_rateA(rB[i], rS[j], rateA=rA, exclude_Nc=opts.exclude_Nc)
 
-print "\t", time.time()-to
+	post -= analytics.sum_logs([analytics.sum_logs(post[i]) for i in xrange(len(rB))])
+	post = np.exp(post)
+
+	ax.plot(RB, RS, marker='o', linestyle='none', markeredgecolor='k', markerfacecolor='none')
+	ax.contour(RB, RS, post, norm=LogNorm())
+#	ax.contour(RB, RS, post)
+
+	ax.set_xlabel("$\lambda_B$")
+	ax.set_ylabel("$\lambda_S$")
+
+	ax.grid(opts.grid, which="both")
+
+	xlim = ax.get_xlim()
+	ylim = ax.get_ylim()
+
+	ax.plot(xlim, rateS*ones, 'k', alpha=0.5)
+	ax.plot(rateB*ones, ylim, 'k', alpha=0.5)
+
+#	ax.set_xscale('log')
+#	ax.set_yscale('log')
+
+	ax.set_xlim(xmin=np.min(rB), xmax=np.max(rB))
+	ax.set_ylim(ymin=np.min(rS), ymax=np.max(rS))
+
+	figname = "%s/rateB-rateS%s.png"%(opts.output_dir, opts.tag)
+	if opts.verbose:
+		print "\t", figname
+	fig.savefig(figname)
+	plt.close(fig)
+
+	print "\t", time.time()-to
 
 #=================================================
 ### else?
-raise StandardError("WRITE ME")
 
 """
 plot quantiles?
