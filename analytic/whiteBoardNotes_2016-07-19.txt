@@ -1,0 +1,32 @@
+Single IFO triggers as a source for rates/population measurements
+
+  - We can simply stack posteriors obtained from PE using a single detector to determine source populations
+      -> standard (MCMC) PE is *expensive* but perhaps the rapidPE can make this tractable?
+      -> we need to assess how much our ability to resolve intrinsic parameters decreases compared to 
+         2 detectors (for a single event as a function of snr, chi2, else)
+        -> This could be a good place to begin: perform this experiment for GW150914, GW151226, and LVT151012. 
+           Perhaps extend to injections in Gaussian noise for more statistics?
+      -> We likely want to weight posterior samples from each event based on the confidence that that event
+         is ``real'' in some sense. This brings us to the next point.
+
+  - The propper approach will include all observed events and will weight them by the likelihood they are 
+    real systems (or something: is there a way to do this without the actual probabilities?)
+      -> we may be able to use evidence or BayesFactors from PE runs, but we need to assess the probability 
+         of seeing these with real noise (expensive...)
+      -> we need to be able to compute this ranking for single IFO events robustly. 
+          -> if we know the shape of the glitch/background distribution through our detection statistics 
+             (eg, frequency, q, snr, etc), then this is just the rates calculation we already do for 
+             2-detector networks.
+          -> if we do *not* know the shape of the background, how do we determine it?
+              -> assume some model (Gaussian + power law?) and fit/regress -> rates calculation
+              -> remove coincident 0-noise triggers from joint analysis and measure single IFO distributions
+                 using the remaining events.
+                  -> This may be a good place to implement my incoherent coinc formalism (https://github.com/reedessick/populations)
+                  -> pragmatically, this may help us when we bring down one IFO for a while but have the 
+                     other running, and have a ``historical record'' of joint livetime with nominally similar 
+                     instruments. Could also be used for single-IFO livetime during a standard observing run.
+                  -> However, if we bring down one detector, commission it, and then bring it back up, the 
+                     noise characteristics may be different enough that we can no longer assume the historical 
+                     record applies.
+              -> NOTE: we need to *carefully* quantify how our assumptions or errors in our models of the 
+                 background affect our conclusions about the single-IFO significances. 
